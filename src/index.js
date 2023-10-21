@@ -6,6 +6,25 @@ const Battleship = (length) => {
   let numTimesHit = 0;
   let sunk = false;
   const lengthOfShip = length;
+  //   switch (shipType.toLowerCase()) {
+  //     case "carrier":
+  //       lengthOfShip = 5;
+  //       break;
+  //     case "battleship":
+  //       lengthOfShip = 4;
+  //       break;
+  //     case "cruiser":
+  //       lengthOfShip = 3;
+  //       break;
+  //     case "submarine":
+  //       lengthOfShip = 3;
+  //       break;
+  //     case "destroyer":
+  //       lengthOfShip = 3;
+  //       break;
+  //     default:
+  //       break;
+  //   }
 
   const getLengthOfShip = () => lengthOfShip;
   const getSunkState = () => sunk;
@@ -21,6 +40,13 @@ const Battleship = (length) => {
   };
 
   return { hit, getLengthOfShip, getSunkState };
+};
+
+const player = (name) => {
+  const getName = () => name;
+  const numShips = 5;
+  const getNumShips = () => numShips;
+  return { getName, getNumShips };
 };
 
 const gameBoard = (() => {
@@ -53,7 +79,6 @@ const gameBoard = (() => {
       if (orientation === "horizontal") {
         board[pointA[1]][pointA[0] + i] = newShip;
       } else if (orientation === "vertical") {
-        console.log(`THE POINT: ${pointA}`);
         board[pointA[1] + i][pointA[0]] = newShip;
       }
     }
@@ -65,6 +90,7 @@ const gameBoard = (() => {
     const y = attackCoordinate[1];
     if (typeof board[y][x] === "object") {
       board[y][x].hit();
+
       board[y][x] = "X";
     } else if (board[y][x] === "0") {
       board[y][x] = "1";
@@ -72,7 +98,14 @@ const gameBoard = (() => {
     console.log(board);
   };
 
-  return { calcShipLength, placeShip, recieveAttack };
+  return {
+    createGameBoard, calcShipLength, placeShip, recieveAttack,
+  };
+})();
+
+const gameController = (() => {
+  const board = gameBoard.createGameBoard();
+  const players = [player("Player1"), player("AI")];
 })();
 
 gameBoard.placeShip([3, 4], [7, 4], "horizontal");
