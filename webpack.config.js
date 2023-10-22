@@ -34,6 +34,17 @@ module.exports = {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: "asset/resource",
       },
+      {
+        test: /\.(webp)$/,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: "images/[name].[ext]", // Output path and filename
+            },
+          },
+        ],
+      },
     ],
   },
   plugins: [

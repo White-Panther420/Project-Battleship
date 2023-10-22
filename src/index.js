@@ -1,6 +1,6 @@
-// eslint-disable-next-line max-len
-// eslint-disable-next-line import/no-absolute-path, import/no-unresolved, import/no-import-module-exports
-// import "./Styles/style.css";
+/* eslint-disable import/no-import-module-exports */
+import "./Styles/styles.css";
+import createPage from "./LoadPage";
 
 const Battleship = (length) => {
   let numTimesHit = 0;
@@ -110,4 +110,6 @@ const gameController = (() => {
 
 gameBoard.placeShip([3, 4], [7, 4], "horizontal");
 gameBoard.recieveAttack([6, 4]);
+createPage();
+
 module.exports = gameBoard;
