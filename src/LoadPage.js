@@ -1,10 +1,10 @@
 /* eslint-disable import/no-import-module-exports */
-import Luffy from "./Assets/Images/Luffy.webp";
-import Kaido from "./Assets/Images/Kaido.png";
+import Luffy from "./Assets/Images/Luffy.png";
+import Akainu from "./Assets/Images/Akainu.png";
 import OnePieceLogo from "./Assets/Images/One-Piece-Logo.png";
 import XCollabLogo from "./Assets/Images/XLogo.png";
 import BattleShipLogo from "./Assets/Images/BattleshipLogo.webp";
-import OceanBackground from "./Assets/Images/Ocean.jpg";
+import OceanBackground from "./Assets/Images/Ocean.png";
 
 const contentDiv = document.getElementById("content");
 contentDiv.style.backgroundImage = `url${OceanBackground}`;
@@ -14,7 +14,10 @@ contentDiv.style.backgroundPosition = "center";
 
 const createElement = (elementName, elemenetClassName, elementID = "") => {
   const newElement = document.createElement(elementName);
-  newElement.classList.add(elemenetClassName);
+  const classNames = elemenetClassName.split(" ");
+  for (let i = 0; i < classNames.length; i += 1) {
+    newElement.classList.add(classNames[i]);
+  }
   if (elementID !== "") {
     newElement.setAttribute("id", elementID);
   }
@@ -51,7 +54,7 @@ const createPage = () => {
 
   const gameContainer = createElement("div", "gameContainer flex");
 
-  const titleContainer = createElement("div", "titleContainer");
+  const titleContainer = createElement("div", "titleContainer flex");
   const onePieceLogoImg = createImage(OnePieceLogo, "onePieceLogoImg");
   const xCollabLogo = createImage(XCollabLogo, "xLogo");
   const battleshipLogo = createImage(BattleShipLogo, "battleshipLogo");
@@ -65,15 +68,15 @@ const createPage = () => {
   const player1NameP = createElement("p", "player1Name");
   player1NameP.textContent = "Player 1";
   const player1GameBoard = createGameBoardGUI(player1NameP.textContent);
-  player1GameBoardContainer.appendChild(player1GameBoard);
   player1GameBoardContainer.appendChild(player1NameP);
+  player1GameBoardContainer.appendChild(player1GameBoard);
 
   const AIGameBoardContainer = createElement("div", "gameBoardContainer");
   const AINameP = createElement("p", "AIName");
   AINameP.textContent = "AI";
   const AIGameBoard = createGameBoardGUI(AINameP.textContent);
-  AIGameBoardContainer.appendChild(AIGameBoard);
   AIGameBoardContainer.appendChild(AINameP);
+  AIGameBoardContainer.appendChild(AIGameBoard);
 
   gameBoardContainers.appendChild(player1GameBoardContainer);
   gameBoardContainers.appendChild(AIGameBoardContainer);
@@ -89,8 +92,8 @@ const createPage = () => {
   gameContainer.appendChild(actionButtonsDiv);
 
   const rightImgDiv = createElement("div", "rightImgDiv");
-  const kaidoImg = createImage(Kaido, "kaidoImg");
-  rightImgDiv.appendChild(kaidoImg);
+  const akainuImg = createImage(Akainu, "akainuImg");
+  rightImgDiv.appendChild(akainuImg);
 
   contentDiv.appendChild(leftImgDiv);
   contentDiv.appendChild(gameContainer);

@@ -112,4 +112,4 @@ gameBoard.placeShip([3, 4], [7, 4], "horizontal");
 gameBoard.recieveAttack([6, 4]);
 createPage();
 
-module.exports = gameBoard;
+// module.exports = gameBoard;
