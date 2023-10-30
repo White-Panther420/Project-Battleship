@@ -81,7 +81,7 @@ const createPage = () => {
   gameBoardContainers.appendChild(player1GameBoardContainer);
   gameBoardContainers.appendChild(AIGameBoardContainer);
 
-  const actionButtonsDiv = createElement("div", "actionButtonsDiv");
+  const actionButtonsDiv = createElement("div", "actionButtonsDiv flex");
   const restartBtn = createElement("button", "restartBtn");
   const quitGameBtn = createElement("button", "quitGameBtn");
   actionButtonsDiv.appendChild(restartBtn);
