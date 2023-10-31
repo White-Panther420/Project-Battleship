@@ -45,6 +45,18 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /\.(mp3)$/,
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name: "[name].[ext]", // You can customize the output filename here
+              outputPath: "assets/audio/", // Define the output directory
+            },
+          },
+        ],
+      },
     ],
   },
   plugins: [

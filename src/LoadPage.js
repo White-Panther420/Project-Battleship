@@ -4,10 +4,11 @@ import Akainu from "./Assets/Images/Akainu.png";
 import OnePieceLogo from "./Assets/Images/One-Piece-Logo.png";
 import XCollabLogo from "./Assets/Images/XLogo.png";
 import BattleShipLogo from "./Assets/Images/BattleshipLogo.webp";
-import OceanBackground from "./Assets/Images/Ocean.png";
+import BGMusic1 from "./Assets/Music/Background Music/Overtaken.mp3";
+import BGMusic2 from "./Assets/Music/Background Music/VeryStrongest.mp3";
+import SoundIcon from "./Assets/Images/sound.png";
 
 const contentDiv = document.getElementById("content");
-contentDiv.style.backgroundImage = `url${OceanBackground}`;
 contentDiv.style.backgroundRepeat = "no-repeat";
 contentDiv.style.backgroundSize = "cover";
 contentDiv.style.backgroundPosition = "center";
@@ -62,22 +63,43 @@ const createPage = () => {
   titleContainer.appendChild(xCollabLogo);
   titleContainer.appendChild(battleshipLogo);
 
+  // Background music
+  // const overtakenAudio = createElement("audio", "audio");
+  // overtakenAudio.src = BGMusic1;
+  const veryStrongestAudio = createElement("audio", "audio");
+  veryStrongestAudio.src = BGMusic2;
+  // gameContainer.appendChild(overtakenAudio);
+  gameContainer.appendChild(veryStrongestAudio);
+  const sound = createImage(SoundIcon, "sound");
+  gameContainer.appendChild(sound);
+
+  sound.addEventListener("click", () => {
+    veryStrongestAudio.play();
+  });
+
   const gameBoardContainers = createElement("div", "gameBoardContainers");
 
   const player1GameBoardContainer = createElement("div", "gameBoardContainer");
+  const playerInfoContainer = createElement("div", "playerInfoContainer flex");
+  const player1Token = createElement("div", "player1Token");
+  playerInfoContainer.appendChild(player1Token);
   const player1NameP = createElement("p", "player1Name");
-  player1NameP.textContent = "Player 1";
+  player1NameP.textContent = "Monkey D. Luffy";
+  playerInfoContainer.appendChild(player1NameP);
   const player1GameBoard = createGameBoardGUI(player1NameP.textContent);
-  player1GameBoardContainer.appendChild(player1NameP);
+  player1GameBoardContainer.appendChild(playerInfoContainer);
   player1GameBoardContainer.appendChild(player1GameBoard);
 
   const AIGameBoardContainer = createElement("div", "gameBoardContainer");
+  const AIInfoContainer = createElement("div", "AIInfoContainer flex");
+  const AIToken = createElement("div", "AIToken");
   const AINameP = createElement("p", "AIName");
-  AINameP.textContent = "AI";
+  AINameP.textContent = "Admiral Sakazuki Akainu";
+  AIInfoContainer.appendChild(AIToken);
+  AIInfoContainer.appendChild(AINameP);
+  AIGameBoardContainer.appendChild(AIInfoContainer);
   const AIGameBoard = createGameBoardGUI(AINameP.textContent);
-  AIGameBoardContainer.appendChild(AINameP);
   AIGameBoardContainer.appendChild(AIGameBoard);
-
   gameBoardContainers.appendChild(player1GameBoardContainer);
   gameBoardContainers.appendChild(AIGameBoardContainer);
 

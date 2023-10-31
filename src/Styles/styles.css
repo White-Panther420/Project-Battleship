@@ -50,7 +50,7 @@ body{
 
 .gameContainer{
     flex-direction: column;
-    
+
     height: 100vh;
     min-width: 70vw;
 
@@ -70,23 +70,24 @@ body{
     width: max(200px, 30%);
     height: max(75px, 20%);
 
-    left: 47%;
-    top: 10%;
-
-    transform: translate(-50%, -50%);
-}
-
-.xLogo{
-    position: absolute;
-    width: max(50px, 10%);
-    height: max(50px, 10%);
-
-    left: 47%;
-    top: 16%;
+    left: 49%;
+    top: 12%;
 
     transform: translate(-50%, -50%);
 
     z-index: 10;
+}
+
+.xLogo{
+    position: absolute;
+    width: max(200px, 40%);
+    height: max(200px, 40%);
+
+    left: 50%;
+    top: 16%;
+
+    transform: translate(-50%, -50%);
+
 }
 
 .battleshipLogo{
@@ -95,8 +96,20 @@ body{
     width: max(200px, 28%);
     height: max(50px, 15%);
 
-    left: 48%;
-    top: 19%;
+    left: 50%;
+    top: 20%;
+
+    transform: translate(-50%, -50%);
+}
+
+.sound{
+    width: 60px;
+    height: 60px;
+
+    position: absolute;
+
+    left: 50%;
+    top: 38%;
 
     transform: translate(-50%, -50%);
 }
@@ -125,6 +138,35 @@ body{
     text-align: center;
 }
 
+.playerInfoContainer,
+.AIInfoContainer{
+    align-items: center;
+
+    margin-bottom: 12px;
+
+    gap: 18px;
+}
+
+.player1Token,
+.AIToken{
+    width: 80px;
+    height: 80px;
+
+    border-radius: 50%;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+}
+
+.player1Token{
+    background-image: url("../Assets/Images/SHEmblem.png");
+}
+
+.AIToken{
+    background-image: url("../Assets/Images/MarineEmblem.png")
+}
+
 .player1Name,
 .AIName{
     font-size: 26px;
@@ -139,7 +181,7 @@ body{
 
 .rowDiv{
     display: flex;
-    height: max(36px, 40px)
+    height: max(38px, 42px)
 }
 
 .square{
