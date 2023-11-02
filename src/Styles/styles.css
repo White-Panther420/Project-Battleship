@@ -1,12 +1,18 @@
 *{
     margin: 0;
     padding: 0;
+    font-family: "OnePieceFont";
 }
 
 html,
 body{
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+@font-face {
+    font-family: "OnePieceFont";
+    src: url("../Assets/Fonts/OnePieceFont.ttf");
 }
 
 .flex{
@@ -29,6 +35,84 @@ body{
     overflow-x: hidden;
 }
 
+.modal{
+    position: absolute;
+    
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    z-index: 10;
+
+    max-width: 350px;
+    height: 650px;
+
+    background-image: url("../Assets/Images/WantedBg.jpg");
+
+    text-align: center;
+
+    padding: 25px 50px;
+}
+
+.modal > p{
+    margin-top: 16px;
+
+    font-weight: 700;
+}
+
+.rotateShipBtn{
+    margin-top: 24px;
+    margin-bottom: 16px;
+
+    background-image: url("../Assets/Images/GumGum.jpg");
+
+    color: white;
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.modal > .gameBoard > .rowDiv > .square,
+.modal > .gameBoard
+{
+    border: 2px rgb(135, 93, 9) solid;
+}
+
+.modal > .gameBoard
+{
+    margin-top: 40px;
+}
+
+.modal > .gameBoard > .rowDiv{
+    height: 35px;
+}
+
+.modal > .gameBoard > .rowDiv > .square
+{
+    width: 35px;
+    height: 35px;
+}
+
+h1{
+    margin-top: 8px;
+    
+    color: rgb(0, 0, 0);
+}
+
+.rotateShipBtn{
+    width: 150px;
+    height: 50px;
+}
+
+.shipPlaced{
+    background-color: brown;
+}
+
+.painted{
+    background-color: black;
+}
+
 .leftImgDiv,
 .rightImgDiv{
     display: flex;
@@ -43,7 +127,7 @@ body{
 
     position: absolute;
     left: 11%;
-    top: 60%;
+    top: 56%;
 
     transform: translate(-50%, -45%);
 }
@@ -55,6 +139,7 @@ body{
     min-width: 70vw;
 
     justify-content: center;
+    align-items: center;
 }
 
 .titleContainer{
@@ -75,7 +160,7 @@ body{
 
     transform: translate(-50%, -50%);
 
-    z-index: 10;
+    z-index: 8;
 }
 
 .xLogo{
@@ -102,18 +187,6 @@ body{
     transform: translate(-50%, -50%);
 }
 
-.sound{
-    width: 60px;
-    height: 60px;
-
-    position: absolute;
-
-    left: 50%;
-    top: 38%;
-
-    transform: translate(-50%, -50%);
-}
-
 .gameBoardContainers{
     display: flex;
 
@@ -131,7 +204,7 @@ body{
 }
 
 .gameBoardContainer{
-    margin: 125px 15px 0 25px;
+    margin: 145px 15px 0 25px;
 
     max-width: 100%;
 
@@ -171,8 +244,15 @@ body{
 .AIName{
     font-size: 26px;
     font-weight: 1000;
+    font-family: "OnePieceFont";
+}
 
-    margin-bottom: 12px;
+.player1Name{
+    color: rgb(157, 11, 230);
+}
+
+.AIName{
+    color: rgb(226, 66, 12);
 }
 
 .gameBoard{
@@ -181,11 +261,11 @@ body{
 
 .rowDiv{
     display: flex;
-    height: max(38px, 42px)
+    height: 35px;
 }
 
 .square{
-    width: 40px;
+    width: 35px;
     height: inherit;
 
     border: 2px solid rgb(255, 255, 255);
@@ -203,5 +283,25 @@ body{
 }
 
 .actionButtonsDiv{
+    margin-bottom: 25px;
+    margin-right: 50px;
 
+    gap: 20px;
+}
+
+.sound{
+    width: 40px;
+    height: 40px;
+}
+
+.quitGameBtn{
+    width: 150px;
+    height: 40px;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    background-image: url("../Assets/Images/GumGum.jpg");
+
+    color: white
 }
