@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable import/no-import-module-exports */
 import Luffy from "./Assets/Images/Luffy.png";
 import Akainu from "./Assets/Images/Akainu.png";
@@ -7,6 +8,12 @@ import BattleShipLogo from "./Assets/Images/BattleshipLogo.webp";
 import BGMusic1 from "./Assets/Music/Background Music/Overtaken.mp3";
 import BGMusic2 from "./Assets/Music/Background Music/VeryStrongest.mp3";
 import SoundIcon from "./Assets/Images/sound.png";
+
+import ThousandSunny from "./Assets/Images/Thousand_Sunny.png";
+import LawSub from "./Assets/Images/Submarine.png";
+import Queen from "./Assets/Images/Queen.png";
+import OroJackson from "./Assets/Images/Oro.png";
+import GoingMerry from "./Assets/Images/Merry.png";
 
 import GameBoard from ".";
 
@@ -42,28 +49,42 @@ const eraseSquares = () => {
   });
 };
 
+const placeShipImg = (square, shipImage, shipLength) => {
+  const squareWidth = square.offsetWidth;
+  shipImage.style.width = `${squareWidth * shipLength}`;
+  shipImage.style.height = `${squareWidth}`;
+  console.log(shipImage);
+  console.log(`Ship Img width: ${shipImage.style.width}`);
+  console.log(`Ship Img height: ${shipImage.style.height}`);
+
+  square.appendChild(shipImage);
+};
+
 const createGameBoardGUI = (placementBoard = false, ships = "") => {
   const gameBoard = createElement("div", "gameBoard");
+  // Will determine if a square can be clicked instead of repeating logic from mouseover
+  let legalMove;
 
   for (let i = 0; i < 10; i += 1) {
     // Make it easier to give squares (x, y) coordinates
     const rowDiv = createElement("div", "rowDiv");
     rowDiv.setAttribute("data-state", i);
     gameBoard.appendChild(rowDiv);
-    for (let j = 0; j < 10; j += 1) { // X coordinate
+    for (let j = 0; j < 10; j += 1) {
       const square = createElement("div", "square player1");
       square.setAttribute("data-state", `(${j}, ${i})`);
       // Add a different eventListener for a board that only places ships
       if (placementBoard) {
+        // eslint-disable-next-line no-loop-func
         square.addEventListener("mouseenter", () => {
           // Get (x, y) coordinate of square as strings in an array
           const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
           // Turn those strings into ints
           const squareCoordinate = squareCoordinateStr.map((match) => parseInt(match, 10));
           const orientation = document.querySelector(".rotateShipBtn").getAttribute("id");
-
           // Paint squares equivalent to ship length
-          for (let k = 0; k < Object.values(ships)[0]; k += 1) {
+          for (let k = 0; k < Object.values(ships)[0][0]; k += 1) {
+            legalMove = false;
             if (orientation === "horizontal") {
               const dataState = `(${squareCoordinate[0] + k}, ${squareCoordinate[1]})`;
               const placementSquare = document.querySelector(`[data-state="${dataState}"]`);
@@ -71,16 +92,21 @@ const createGameBoardGUI = (placementBoard = false, ships = "") => {
                 // Visual message letting the user know they're attempting to place a ship
                 // on an invalid spot on the board
                 eraseSquares();
+                // Don't need to check other squares
+                break;
               } else {
                 placementSquare.classList.add("painted");
+                legalMove = true;
               }
             } else {
               const dataState = `(${squareCoordinate[0]}, ${squareCoordinate[1] + k})`;
               const placementSquare = document.querySelector(`[data-state="${dataState}"]`);
               if (placementSquare === null || placementSquare.classList.contains("shipPlaced")) {
                 eraseSquares();
+                break;
               } else {
                 placementSquare.classList.add("painted");
+                legalMove = true;
               }
             }
           }
@@ -89,29 +115,40 @@ const createGameBoardGUI = (placementBoard = false, ships = "") => {
           // Clear squares of bg color
           eraseSquares();
         });
+        // eslint-disable-next-line no-loop-func
         square.addEventListener("click", () => {
-          const firstKeyName = Object.keys(ships)[0];
-          const pointAStr = square.getAttribute("data-state").match(/\d+/g);
-          // Turn those strings into ints
-          const pointA = pointAStr.map((match) => parseInt(match, 10));
-          const orientation = document.querySelector(".rotateShipBtn").getAttribute("id");
+          if (legalMove) {
+            const firstKeyName = Object.keys(ships)[0];
+            const firstShipLength = Object.values(ships)[0][0];
+            const firstShipImage = Object.values(ships)[0][1];
+            const pointAAttribute = square.getAttribute("data-state");
+            const PointAStr = pointAAttribute.match(/\d+/g);
+            const pointA = PointAStr.map((match) => parseInt(match, 10));
+            const orientation = document.querySelector(".rotateShipBtn").getAttribute("id");
 
-          GameBoard.placeShip(pointA, orientation, firstKeyName);
-          const paintedSquares = document.querySelectorAll(".painted");
-          paintedSquares.forEach((paintedSquare) => {
-            paintedSquare.classList.add("shipPlaced");
-          });
+            const player1Board = document.querySelector(".player1Board");
+            const player1BoardSquare = player1Board.querySelector(`[data-state = "${pointAAttribute}"]`);
+            const image = createImage(firstShipImage, "shipImg");
+            placeShipImg(player1BoardSquare, image, firstShipLength);
+            GameBoard.placeShip(pointA, orientation, firstKeyName);
 
-          // eslint-disable-next-line no-param-reassign
-          const keys = Object.keys(ships);
-          const firstKey = keys[0];
-          delete ships[firstKey];
+            const paintedSquares = document.querySelectorAll(".painted");
+            paintedSquares.forEach((paintedSquare) => {
+              paintedSquare.classList.add("shipPlaced");
+            });
 
-          console.log(ships);
-          // All ships are placed
-          if (Object.keys(ships).length === 0) {
-            const modal = document.querySelector(".modal");
-            modal.style.display = "none";
+            // eslint-disable-next-line no-param-reassign
+            const keys = Object.keys(ships);
+            const firstKey = keys[0];
+            // eslint-disable-next-line no-param-reassign
+            delete ships[firstKey];
+            // All ships are placed
+            if (Object.keys(ships).length === 4) {
+              const modal = document.querySelector(".modal");
+              modal.style.display = "none";
+            }
+          } else { // Invalid move
+
           }
         });
       }
@@ -124,11 +161,11 @@ const createGameBoardGUI = (placementBoard = false, ships = "") => {
 // Displays the board where player will place their ships
 const displayPlacementBoardModal = () => {
   const ships = {
-    carrier: 5,
-    battleship: 4,
-    cruiser: 4,
-    submarine: 3,
-    destroyer: 2,
+    carrier: [5, Queen],
+    battleship: [4, OroJackson],
+    cruiser: [4, GoingMerry],
+    submarine: [3, LawSub],
+    destroyer: [2, ThousandSunny],
   };
 
   const modal = createElement("modal", "modal");
@@ -195,7 +232,8 @@ const createPage = () => {
   const player1NameP = createElement("p", "player1Name");
   player1NameP.textContent = "Monkey D. Luffy";
   playerInfoContainer.appendChild(player1NameP);
-  const player1GameBoard = createGameBoardGUI(player1NameP.textContent);
+  const player1GameBoard = createGameBoardGUI();
+  player1GameBoard.classList.add("player1Board");
   player1GameBoardContainer.appendChild(playerInfoContainer);
   player1GameBoardContainer.appendChild(player1GameBoard);
 
@@ -207,7 +245,8 @@ const createPage = () => {
   AIInfoContainer.appendChild(AIToken);
   AIInfoContainer.appendChild(AINameP);
   AIGameBoardContainer.appendChild(AIInfoContainer);
-  const AIGameBoard = createGameBoardGUI(AINameP.textContent);
+  const AIGameBoard = createGameBoardGUI();
+  AIGameBoard.classList.add("AIGameBoard");
   AIGameBoardContainer.appendChild(AIGameBoard);
   gameBoardContainers.appendChild(player1GameBoardContainer);
   gameBoardContainers.appendChild(AIGameBoardContainer);
