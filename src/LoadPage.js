@@ -13,9 +13,9 @@ import ThousandSunny from "./Assets/Images/Thousand_Sunny.png";
 import LawSub from "./Assets/Images/Submarine.png";
 import Queen from "./Assets/Images/Queen.png";
 import OroJackson from "./Assets/Images/Oro.png";
-import GoingMerry from "./Assets/Images/Merry.png";
+import Boa from "./Assets/Images/Boa.png";
 
-import GameBoard from ".";
+import { GameBoard, GameController } from "./index.js";
 
 const contentDiv = document.getElementById("content");
 contentDiv.style.backgroundRepeat = "no-repeat";
@@ -49,18 +49,39 @@ const eraseSquares = () => {
   });
 };
 
-const placeShipImg = (square, shipImage, shipLength) => {
+const placeShipImg = (square, shipImage, shipLength, orientation) => {
   const squareWidth = square.offsetWidth;
-  shipImage.style.width = `${squareWidth * shipLength}`;
-  shipImage.style.height = `${squareWidth}`;
-  console.log(shipImage);
-  console.log(`Ship Img width: ${shipImage.style.width}`);
-  console.log(`Ship Img height: ${shipImage.style.height}`);
 
-  square.appendChild(shipImage);
+  if (orientation === "vertical") {
+    // Create a container for the image
+    const imgContainer = createElement("div", "imgContainer");
+    imgContainer.style.width = `${squareWidth - 4}px`;
+    imgContainer.style.height = `${(squareWidth - 3) * shipLength}px`;
+    imgContainer.style.background = "rgb(83, 129, 237)";
+    // Positioning the ship with absolute so we can move it up when it rotates
+    shipImage.style.height = `${squareWidth - 4}px`;
+    shipImage.style.width = `${(squareWidth - 3) * shipLength}px`;
+
+    shipImage.style.transformOrigin = "bottom left";
+    shipImage.style.transform = "translate(0%, -100%) rotate(90deg)";
+
+    imgContainer.appendChild(shipImage);
+    square.appendChild(imgContainer);
+  } else {
+    // Create a container for the image
+    const imgContainer = createElement("div", "imgContainer");
+    imgContainer.style.width = `${squareWidth * shipLength}px`;
+    imgContainer.style.height = `${squareWidth - 8}px`;
+
+    shipImage.style.height = `${squareWidth - 8}px`;
+    shipImage.style.width = `${(squareWidth) * shipLength}px`;
+    imgContainer.style.background = "rgb(83, 129, 237)";
+    imgContainer.appendChild(shipImage);
+    square.appendChild(imgContainer);
+  }
 };
 
-const createGameBoardGUI = (placementBoard = false, ships = "") => {
+const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
   const gameBoard = createElement("div", "gameBoard");
   // Will determine if a square can be clicked instead of repeating logic from mouseover
   let legalMove;
@@ -71,7 +92,7 @@ const createGameBoardGUI = (placementBoard = false, ships = "") => {
     rowDiv.setAttribute("data-state", i);
     gameBoard.appendChild(rowDiv);
     for (let j = 0; j < 10; j += 1) {
-      const square = createElement("div", "square player1");
+      const square = createElement("div", `square ${playerName}`);
       square.setAttribute("data-state", `(${j}, ${i})`);
       // Add a different eventListener for a board that only places ships
       if (placementBoard) {
@@ -129,7 +150,7 @@ const createGameBoardGUI = (placementBoard = false, ships = "") => {
             const player1Board = document.querySelector(".player1Board");
             const player1BoardSquare = player1Board.querySelector(`[data-state = "${pointAAttribute}"]`);
             const image = createImage(firstShipImage, "shipImg");
-            placeShipImg(player1BoardSquare, image, firstShipLength);
+            placeShipImg(player1BoardSquare, image, firstShipLength, orientation);
             GameBoard.placeShip(pointA, orientation, firstKeyName);
 
             const paintedSquares = document.querySelectorAll(".painted");
@@ -137,18 +158,38 @@ const createGameBoardGUI = (placementBoard = false, ships = "") => {
               paintedSquare.classList.add("shipPlaced");
             });
 
+            // Prevent user from double clicking on a square
+            eraseSquares();
+
             // eslint-disable-next-line no-param-reassign
             const keys = Object.keys(ships);
             const firstKey = keys[0];
             // eslint-disable-next-line no-param-reassign
             delete ships[firstKey];
             // All ships are placed
-            if (Object.keys(ships).length === 4) {
+            if (Object.keys(ships).length === 0) {
               const modal = document.querySelector(".modal");
               modal.style.display = "none";
             }
           } else { // Invalid move
 
+          }
+        });
+      } else { // Regular gameboard
+        // eslint-disable-next-line no-lonely-if
+        if (playerName === "AI") {
+          square.addEventListener("mouseenter", () => {
+            square.style.background = "green";
+          });
+          square.addEventListener("mouseleave", () => {
+            square.style.background = "none";
+          });
+        }
+        square.addEventListener("click", () => {
+          if (square.classList.contains("AI")) {
+            GameController.playTurn(square, "AI");
+          } else {
+            GameController.playTurn(square, "player1");
           }
         });
       }
@@ -163,7 +204,7 @@ const displayPlacementBoardModal = () => {
   const ships = {
     carrier: [5, Queen],
     battleship: [4, OroJackson],
-    cruiser: [4, GoingMerry],
+    cruiser: [4, Boa],
     submarine: [3, LawSub],
     destroyer: [2, ThousandSunny],
   };
@@ -187,7 +228,7 @@ const displayPlacementBoardModal = () => {
       rotateShipBtn.setAttribute("id", "horizontal");
     }
   });
-  const placementBoard = createGameBoardGUI(true, ships);
+  const placementBoard = createGameBoardGUI("placement", true, ships);
 
   modal.appendChild(welcomeHeader);
   modal.appendChild(welcomeMsg);
@@ -232,7 +273,7 @@ const createPage = () => {
   const player1NameP = createElement("p", "player1Name");
   player1NameP.textContent = "Monkey D. Luffy";
   playerInfoContainer.appendChild(player1NameP);
-  const player1GameBoard = createGameBoardGUI();
+  const player1GameBoard = createGameBoardGUI("player1");
   player1GameBoard.classList.add("player1Board");
   player1GameBoardContainer.appendChild(playerInfoContainer);
   player1GameBoardContainer.appendChild(player1GameBoard);
@@ -245,7 +286,7 @@ const createPage = () => {
   AIInfoContainer.appendChild(AIToken);
   AIInfoContainer.appendChild(AINameP);
   AIGameBoardContainer.appendChild(AIInfoContainer);
-  const AIGameBoard = createGameBoardGUI();
+  const AIGameBoard = createGameBoardGUI("AI");
   AIGameBoard.classList.add("AIGameBoard");
   AIGameBoardContainer.appendChild(AIGameBoard);
   gameBoardContainers.appendChild(player1GameBoardContainer);
@@ -273,4 +314,8 @@ const createPage = () => {
   contentDiv.appendChild(gameContainer);
   contentDiv.appendChild(rightImgDiv);
 };
-export default createPage;
+export {
+  createPage,
+  createImage,
+  createElement,
+};
