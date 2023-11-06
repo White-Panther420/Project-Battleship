@@ -80,7 +80,56 @@ const placeShipImg = (square, shipImage, shipLength, orientation) => {
     square.appendChild(imgContainer);
   }
 };
+// Marks placed ships on modal and places ship on actual board
+const placeShipOnBoard = (playerName, ships, square) => {
+  const firstKeyName = Object.keys(ships)[0];
+  const firstShipLength = Object.values(ships)[0][0];
+  const firstShipImage = Object.values(ships)[0][1];
+  const pointAAttribute = square.getAttribute("data-state");
+  const PointAStr = pointAAttribute.match(/\d+/g);
+  const pointA = PointAStr.map((match) => parseInt(match, 10));
 
+  // Select board based on who is placing ships
+  const boardName = `${playerName}Board`;
+
+  // Avoid placing image on modal gameboard
+  const player1Board = document.querySelector(".player1Board");
+  const player1BoardSquare = player1Board.querySelector(`[data-state = "${pointAAttribute}"]`);
+
+  let orientation;
+  if (playerName === "AI") {
+    // AI picks a random orientation
+    const randomNumber = Math.random();
+    orientation = randomNumber < 0.5 ? "horizontal" : "vertical";
+  } else {
+    orientation = document.querySelector(".rotateShipBtn").getAttribute("id");
+  }
+
+  const image = createImage(firstShipImage, "shipImg");
+  placeShipImg(player1BoardSquare, image, firstShipLength, orientation);
+  GameBoard.placeShip(pointA, orientation, firstKeyName, boardName);
+
+  const paintedSquares = document.querySelectorAll(".painted");
+  paintedSquares.forEach((paintedSquare) => {
+    paintedSquare.classList.add("shipPlaced");
+  });
+
+  // Prevent user from double clicking on a square
+  eraseSquares();
+
+  // eslint-disable-next-line no-param-reassign
+  const keys = Object.keys(ships);
+  const firstKey = keys[0];
+  // eslint-disable-next-line no-param-reassign
+  delete ships[firstKey];
+  // All ships are placed
+  if (Object.keys(ships).length === 0) {
+    if (playerName === "player1") {
+      const modal = document.querySelector(".modal");
+      modal.style.display = "none";
+    }
+  }
+};
 const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
   const gameBoard = createElement("div", "gameBoard");
   // Will determine if a square can be clicked instead of repeating logic from mouseover
@@ -139,38 +188,7 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
         // eslint-disable-next-line no-loop-func
         square.addEventListener("click", () => {
           if (legalMove) {
-            const firstKeyName = Object.keys(ships)[0];
-            const firstShipLength = Object.values(ships)[0][0];
-            const firstShipImage = Object.values(ships)[0][1];
-            const pointAAttribute = square.getAttribute("data-state");
-            const PointAStr = pointAAttribute.match(/\d+/g);
-            const pointA = PointAStr.map((match) => parseInt(match, 10));
-            const orientation = document.querySelector(".rotateShipBtn").getAttribute("id");
-
-            const player1Board = document.querySelector(".player1Board");
-            const player1BoardSquare = player1Board.querySelector(`[data-state = "${pointAAttribute}"]`);
-            const image = createImage(firstShipImage, "shipImg");
-            placeShipImg(player1BoardSquare, image, firstShipLength, orientation);
-            GameBoard.placeShip(pointA, orientation, firstKeyName);
-
-            const paintedSquares = document.querySelectorAll(".painted");
-            paintedSquares.forEach((paintedSquare) => {
-              paintedSquare.classList.add("shipPlaced");
-            });
-
-            // Prevent user from double clicking on a square
-            eraseSquares();
-
-            // eslint-disable-next-line no-param-reassign
-            const keys = Object.keys(ships);
-            const firstKey = keys[0];
-            // eslint-disable-next-line no-param-reassign
-            delete ships[firstKey];
-            // All ships are placed
-            if (Object.keys(ships).length === 0) {
-              const modal = document.querySelector(".modal");
-              modal.style.display = "none";
-            }
+            placeShipOnBoard("player1", ships, square);
           } else { // Invalid move
 
           }
@@ -186,10 +204,11 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
           });
         }
         square.addEventListener("click", () => {
+          // Player clicked AI square
           if (square.classList.contains("AI")) {
-            GameController.playTurn(square, "AI");
-          } else {
             GameController.playTurn(square, "player1");
+          } else {
+            GameController.playTurn(square, "AI");
           }
         });
       }
@@ -237,6 +256,25 @@ const displayPlacementBoardModal = () => {
   modal.appendChild(placementBoard);
 
   contentDiv.appendChild(modal);
+};
+
+const placeAIShips = () => {
+  const AIBoard = document.querySelector(".AIBoard");
+  const AIShips = {
+    carrier: [5, Queen],
+    battleship: [4, OroJackson],
+    cruiser: [4, Boa],
+    submarine: [3, LawSub],
+    destroyer: [2, ThousandSunny],
+  };
+  const x = Math.floor(Math.random() * 10); // Random number between 0 and 9
+  const y = Math.floor(Math.random() * 10);
+  const dataState = `(${x}, ${y})`;
+  const moveSquare = AIBoard.querySelector(`[data-state = "${dataState}"]`);
+
+  while (Object.keys(AIShips).length > 0) {
+    placeShipOnBoard("AI", AIShips, square);
+  }
 };
 
 const createPage = () => {
@@ -287,7 +325,7 @@ const createPage = () => {
   AIInfoContainer.appendChild(AINameP);
   AIGameBoardContainer.appendChild(AIInfoContainer);
   const AIGameBoard = createGameBoardGUI("AI");
-  AIGameBoard.classList.add("AIGameBoard");
+  AIGameBoard.classList.add("AIBoard");
   AIGameBoardContainer.appendChild(AIGameBoard);
   gameBoardContainers.appendChild(player1GameBoardContainer);
   gameBoardContainers.appendChild(AIGameBoardContainer);

@@ -47,12 +47,12 @@ const Battleship = (shipType) => {
 
 const player = (name) => {
   const getName = () => name;
-  const numShips = 5;
+  let numShips = 0;
   const getNumShips = () => numShips;
   const reduceNumShips = () => {
     numShips -= 1;
   };
-  return { getName, getNumShips };
+  return { getName, getNumShips, reduceNumShips };
 };
 
 const GameBoard = (() => {
@@ -67,14 +67,15 @@ const GameBoard = (() => {
     return board;
   };
 
-  const placeShip = (pointA, orientation, shipName, playerName) => {
+  const boards = {
+    player1Board: createGameBoard(),
+    AIBoard: createGameBoard(),
+  };
+
+  const placeShip = (pointA, orientation, shipName, boardName) => {
     const newShip = Battleship(shipName);
-    let board;
-    if (playerName.toLoverCase === "player1") {
-      board = playerBoard;
-    } else {
-      board = AIBoard;
-    }
+    const board = boards[boardName];
+
     for (let i = 0; i < newShip.getLengthOfShip(); i += 1) {
       // Flipped orientation since array is flipped
       if (orientation === "horizontal") {
@@ -97,40 +98,13 @@ const GameBoard = (() => {
       board[y][x] = "1";
       return "miss";
     }
+    // Player or AI tries to attack same spot twice
+    return "invalid";
   };
 
   return {
     createGameBoard, placeShip, recieveAttack,
   };
-})();
-
-const GameController = (() => {
-  const boards = {
-    playerBoard: GameBoard.createGameBoard(),
-    AIBoard: GameBoard.createGameBoard(),
-  };
-
-  const players = [player("Player1"), player("AI")];
-
-  const playTurn = (square, playerName) => {
-    const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
-    // Turn those strings into ints
-    const squareCoordinate = squareCoordinateStr.map((match) => parseInt(match, 10));
-    let turn;
-    if (playerName.toLoverCase() === "player1") {
-      turn = 0;
-    } else {
-      turn = 1;
-    }
-
-    const isHit = GameBoard.recieveAttack(squareCoordinate, Object.values(boards)[turn]);
-    markSquare(square, isHit);
-    if (isHit === "sunk") {
-      players[turn];
-    }
-  };
-
-  return { playTurn };
 })();
 
 const GUIController = (() => {
@@ -157,6 +131,30 @@ const GUIController = (() => {
         break;
     }
   };
+})();
+
+const GameController = (() => {
+  const players = [player("Player1"), player("AI")];
+
+  const playTurn = (square, playerName) => {
+    const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
+    // Turn those strings into ints
+    const squareCoordinate = squareCoordinateStr.map((match) => parseInt(match, 10));
+    let turn;
+    if (playerName.toLoverCase() === "player1") {
+      turn = 0;
+    } else {
+      turn = 1;
+    }
+
+    const isHit = GameBoard.recieveAttack(squareCoordinate, Object.values(boards)[turn]);
+    GUIController.markSquare(square, isHit);
+    if (isHit === "sunk") {
+      players[turn].reduceNumShips();
+    }
+  };
+
+  return { playTurn };
 })();
 
 createPage();
