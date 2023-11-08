@@ -81,32 +81,28 @@ const placeShipImg = (square, shipImage, shipLength, orientation) => {
   }
 };
 // Marks placed ships on modal and places ship on actual board
-const placeShipOnBoard = (playerName, ships, square) => {
+const placeShipOnBoard = (playerName, ships, square, orientation) => {
   const firstKeyName = Object.keys(ships)[0];
   const firstShipLength = Object.values(ships)[0][0];
   const firstShipImage = Object.values(ships)[0][1];
   const pointAAttribute = square.getAttribute("data-state");
   const PointAStr = pointAAttribute.match(/\d+/g);
   const pointA = PointAStr.map((match) => parseInt(match, 10));
+  const image = createImage(firstShipImage, "shipImg");
 
   // Select board based on who is placing ships
   const boardName = `${playerName}Board`;
 
-  // Avoid placing image on modal gameboard
   const player1Board = document.querySelector(".player1Board");
   const player1BoardSquare = player1Board.querySelector(`[data-state = "${pointAAttribute}"]`);
 
-  let orientation;
   if (playerName === "AI") {
-    // AI picks a random orientation
-    const randomNumber = Math.random();
-    orientation = randomNumber < 0.5 ? "horizontal" : "vertical";
+    placeShipImg(square, image, firstShipLength, orientation);
   } else {
-    orientation = document.querySelector(".rotateShipBtn").getAttribute("id");
+    // Avoid placing image on modal gameboard
+    placeShipImg(player1BoardSquare, image, firstShipLength, orientation);
   }
 
-  const image = createImage(firstShipImage, "shipImg");
-  placeShipImg(player1BoardSquare, image, firstShipLength, orientation);
   GameBoard.placeShip(pointA, orientation, firstKeyName, boardName);
 
   const paintedSquares = document.querySelectorAll(".painted");
@@ -130,11 +126,49 @@ const placeShipOnBoard = (playerName, ships, square) => {
     }
   }
 };
-const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
-  const gameBoard = createElement("div", "gameBoard");
+
+const checkForOverlappingShips = (square, orientation, ships) => {
+  // Get (x, y) coordinate of square as strings in an array
+  const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
+  // Turn those strings into ints
+  const squareCoordinate = squareCoordinateStr.map((match) => parseInt(match, 10));
   // Will determine if a square can be clicked instead of repeating logic from mouseover
   let legalMove;
 
+  // Paint squares equivalent to ship length
+  for (let k = 0; k < Object.values(ships)[0][0]; k += 1) {
+    legalMove = false;
+    if (orientation === "horizontal") {
+      const dataState = `(${squareCoordinate[0] + k}, ${squareCoordinate[1]})`;
+      const placementSquare = document.querySelector(`[data-state="${dataState}"]`);
+      if (placementSquare === null || placementSquare.classList.contains("shipPlaced")) {
+        // Visual message letting the user know they're attempting to place a ship
+        // on an invalid spot on the board
+        eraseSquares();
+        // Don't need to check other squares
+        break;
+      } else {
+        placementSquare.classList.add("painted");
+        legalMove = true;
+      }
+    } else {
+      const dataState = `(${squareCoordinate[0]}, ${squareCoordinate[1] + k})`;
+      const placementSquare = document.querySelector(`[data-state="${dataState}"]`);
+      if (placementSquare === null || placementSquare.classList.contains("shipPlaced")) {
+        eraseSquares();
+        break;
+      } else {
+        placementSquare.classList.add("painted");
+        legalMove = true;
+      }
+    }
+  }
+  return legalMove;
+};
+
+const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
+  const gameBoard = createElement("div", "gameBoard");
+  let legalMove;
   for (let i = 0; i < 10; i += 1) {
     // Make it easier to give squares (x, y) coordinates
     const rowDiv = createElement("div", "rowDiv");
@@ -147,39 +181,8 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
       if (placementBoard) {
         // eslint-disable-next-line no-loop-func
         square.addEventListener("mouseenter", () => {
-          // Get (x, y) coordinate of square as strings in an array
-          const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
-          // Turn those strings into ints
-          const squareCoordinate = squareCoordinateStr.map((match) => parseInt(match, 10));
           const orientation = document.querySelector(".rotateShipBtn").getAttribute("id");
-          // Paint squares equivalent to ship length
-          for (let k = 0; k < Object.values(ships)[0][0]; k += 1) {
-            legalMove = false;
-            if (orientation === "horizontal") {
-              const dataState = `(${squareCoordinate[0] + k}, ${squareCoordinate[1]})`;
-              const placementSquare = document.querySelector(`[data-state="${dataState}"]`);
-              if (placementSquare === null || placementSquare.classList.contains("shipPlaced")) {
-                // Visual message letting the user know they're attempting to place a ship
-                // on an invalid spot on the board
-                eraseSquares();
-                // Don't need to check other squares
-                break;
-              } else {
-                placementSquare.classList.add("painted");
-                legalMove = true;
-              }
-            } else {
-              const dataState = `(${squareCoordinate[0]}, ${squareCoordinate[1] + k})`;
-              const placementSquare = document.querySelector(`[data-state="${dataState}"]`);
-              if (placementSquare === null || placementSquare.classList.contains("shipPlaced")) {
-                eraseSquares();
-                break;
-              } else {
-                placementSquare.classList.add("painted");
-                legalMove = true;
-              }
-            }
-          }
+          legalMove = checkForOverlappingShips(square, orientation, ships);
         });
         square.addEventListener("mouseleave", () => {
           // Clear squares of bg color
@@ -188,7 +191,8 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
         // eslint-disable-next-line no-loop-func
         square.addEventListener("click", () => {
           if (legalMove) {
-            placeShipOnBoard("player1", ships, square);
+            const orientation = document.querySelector(".rotateShipBtn").getAttribute("id");
+            placeShipOnBoard("player1", ships, square, orientation);
           } else { // Invalid move
 
           }
@@ -216,6 +220,26 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
     }
   }
   return gameBoard;
+};
+
+const makeAIMOve = () => {
+  const x = Math.floor(Math.random() * 10); // Random number between 0 and 9
+  const y = Math.floor(Math.random() * 10);
+
+  const dataState = `(${x}, ${y})`;
+  const AIBoard = document.querySelector(".AIBoard");
+  const moveSquare = AIBoard.querySelector(`[data-state = "${dataState}"]`);
+  return moveSquare;
+};
+const checkAiLegalMove = (coordinates, shipLength, orientation) => {
+  if (orientation === "horizontal") {
+    if ((coordinates[0] + shipLength) > 9) {
+      return false;
+    }
+  } else if ((coordinates[1] + shipLength) > 9) {
+    return false;
+  }
+  return true;
 };
 
 // Displays the board where player will place their ships
@@ -259,7 +283,6 @@ const displayPlacementBoardModal = () => {
 };
 
 const placeAIShips = () => {
-  const AIBoard = document.querySelector(".AIBoard");
   const AIShips = {
     carrier: [5, Queen],
     battleship: [4, OroJackson],
@@ -267,19 +290,23 @@ const placeAIShips = () => {
     submarine: [3, LawSub],
     destroyer: [2, ThousandSunny],
   };
-  const x = Math.floor(Math.random() * 10); // Random number between 0 and 9
-  const y = Math.floor(Math.random() * 10);
-  const dataState = `(${x}, ${y})`;
-  const moveSquare = AIBoard.querySelector(`[data-state = "${dataState}"]`);
 
   while (Object.keys(AIShips).length > 0) {
-    placeShipOnBoard("AI", AIShips, square);
+    // AI picks a random orientation
+    const randomNumber = Math.random();
+    const orientation = randomNumber < 0.5 ? "horizontal" : "vertical";
+
+    let square = makeAIMOve();
+    while (!checkForOverlappingShips(square, orientation, AIShips)) {
+      square = makeAIMOve();
+    }
+
+    placeShipOnBoard("AI", AIShips, square, orientation);
   }
 };
 
 const createPage = () => {
   displayPlacementBoardModal();
-
   const leftImgDiv = createElement("div", "leftImgDiv");
   const luffyImg = createImage(Luffy, "LuffyImg");
   leftImgDiv.appendChild(luffyImg);
@@ -351,6 +378,7 @@ const createPage = () => {
   contentDiv.appendChild(leftImgDiv);
   contentDiv.appendChild(gameContainer);
   contentDiv.appendChild(rightImgDiv);
+  placeAIShips();
 };
 export {
   createPage,

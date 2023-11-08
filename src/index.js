@@ -75,7 +75,7 @@ const GameBoard = (() => {
   const placeShip = (pointA, orientation, shipName, boardName) => {
     const newShip = Battleship(shipName);
     const board = boards[boardName];
-
+    console.log(board);
     for (let i = 0; i < newShip.getLengthOfShip(); i += 1) {
       // Flipped orientation since array is flipped
       if (orientation === "horizontal") {
