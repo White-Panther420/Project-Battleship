@@ -79,6 +79,8 @@ const placeShipImg = (square, shipImage, shipLength, orientation) => {
     imgContainer.appendChild(shipImage);
     square.appendChild(imgContainer);
   }
+
+  return square;
 };
 // Marks placed ships on modal and places ship on actual board
 const placeShipOnBoard = (playerName, ships, square, orientation) => {
@@ -97,18 +99,23 @@ const placeShipOnBoard = (playerName, ships, square, orientation) => {
   const player1BoardSquare = player1Board.querySelector(`[data-state = "${pointAAttribute}"]`);
 
   if (playerName === "AI") {
-    placeShipImg(square, image, firstShipLength, orientation);
+    const squareToPlaceImg = placeShipImg(square, image, firstShipLength, orientation);
+    // Hide AI ships
+    const imageContainer = squareToPlaceImg.querySelector(".imgContainer");
+    imageContainer.style.background = "none";
+    const shipImg = imageContainer.querySelector(".shipImg");
+    shipImg.style.opacity = 0;
   } else {
     // Avoid placing image on modal gameboard
     placeShipImg(player1BoardSquare, image, firstShipLength, orientation);
+    const paintedSquares = document.querySelectorAll(".painted");
+    paintedSquares.forEach((paintedSquare) => {
+      paintedSquare.classList.add("shipPlaced");
+    });
   }
 
+  // Place ship in array
   GameBoard.placeShip(pointA, orientation, firstKeyName, boardName);
-
-  const paintedSquares = document.querySelectorAll(".painted");
-  paintedSquares.forEach((paintedSquare) => {
-    paintedSquare.classList.add("shipPlaced");
-  });
 
   // Prevent user from double clicking on a square
   eraseSquares();
@@ -126,8 +133,8 @@ const placeShipOnBoard = (playerName, ships, square, orientation) => {
     }
   }
 };
-
-const checkForOverlappingShips = (square, orientation, ships) => {
+// Checks to make sure move is legal and not overlapping with other ships
+const checkForIllegalMove = (square, orientation, ships) => {
   // Get (x, y) coordinate of square as strings in an array
   const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
   // Turn those strings into ints
@@ -182,7 +189,7 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
         // eslint-disable-next-line no-loop-func
         square.addEventListener("mouseenter", () => {
           const orientation = document.querySelector(".rotateShipBtn").getAttribute("id");
-          legalMove = checkForOverlappingShips(square, orientation, ships);
+          legalMove = checkForIllegalMove(square, orientation, ships);
         });
         square.addEventListener("mouseleave", () => {
           // Clear squares of bg color
@@ -210,9 +217,9 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
         square.addEventListener("click", () => {
           // Player clicked AI square
           if (square.classList.contains("AI")) {
-            GameController.playTurn(square, "player1");
+            GameController.playTurn(square, "player1", "AIBoard");
           } else {
-            GameController.playTurn(square, "AI");
+            GameController.playTurn(square, "AI", "player1Board");
           }
         });
       }
@@ -230,16 +237,6 @@ const makeAIMOve = () => {
   const AIBoard = document.querySelector(".AIBoard");
   const moveSquare = AIBoard.querySelector(`[data-state = "${dataState}"]`);
   return moveSquare;
-};
-const checkAiLegalMove = (coordinates, shipLength, orientation) => {
-  if (orientation === "horizontal") {
-    if ((coordinates[0] + shipLength) > 9) {
-      return false;
-    }
-  } else if ((coordinates[1] + shipLength) > 9) {
-    return false;
-  }
-  return true;
 };
 
 // Displays the board where player will place their ships
@@ -297,7 +294,8 @@ const placeAIShips = () => {
     const orientation = randomNumber < 0.5 ? "horizontal" : "vertical";
 
     let square = makeAIMOve();
-    while (!checkForOverlappingShips(square, orientation, AIShips)) {
+    // Check if move is legal and ships are not overlapping
+    while (!checkForIllegalMove(square, orientation, AIShips)) {
       square = makeAIMOve();
     }
 

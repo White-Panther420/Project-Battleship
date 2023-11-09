@@ -85,12 +85,18 @@ const GameBoard = (() => {
       }
     }
   };
-  const recieveAttack = (attackCoordinate, board) => {
+  const recieveAttack = (attackCoordinate, player, opponentBoardName) => {
     const x = attackCoordinate[0];
     const y = attackCoordinate[1];
+    const board = boards[opponentBoardName];
 
     if (typeof board[y][x] === "object") {
+      // Check if ship is sunk
       if (board[y][x].hit().getSunkState()) {
+        player.reduceNumShips();
+        if (player.getNumShips() === 0) {
+          return "over";
+        }
         return "sunk";
       }
       return "hit";
@@ -120,6 +126,12 @@ const GUIController = (() => {
       {
         const imageContainer = square.querySelector(".imgContainer");
         imageContainer.style.background = "black";
+
+        // Reveal sunk ship
+        if (square.classList.contains("AI")) {
+          const shipImg = imageContainer.querySelector(".shipImg");
+          shipImg.style.opacity = 2.0;
+        }
         break;
       }
       case "miss":
@@ -136,22 +148,22 @@ const GUIController = (() => {
 const GameController = (() => {
   const players = [player("Player1"), player("AI")];
 
-  const playTurn = (square, playerName) => {
+  const playTurn = (square, playerName, opponentBoardName) => {
     const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
     // Turn those strings into ints
     const squareCoordinate = squareCoordinateStr.map((match) => parseInt(match, 10));
     let turn;
-    if (playerName.toLoverCase() === "player1") {
+    if (playerName === "player1") {
       turn = 0;
     } else {
       turn = 1;
     }
 
-    const isHit = GameBoard.recieveAttack(squareCoordinate, Object.values(boards)[turn]);
-    GUIController.markSquare(square, isHit);
-    if (isHit === "sunk") {
-      players[turn].reduceNumShips();
+    const isHit = GameBoard.recieveAttack(squareCoordinate, players[turn], opponentBoardName);
+    if (isHit === "over") {
+      return "game over";
     }
+    GUIController.markSquare(square, isHit);
   };
 
   return { playTurn };
