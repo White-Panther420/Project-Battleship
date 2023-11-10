@@ -23,7 +23,7 @@ const Battleship = (shipType) => {
       lengthOfShip = 3;
       break;
     case "destroyer":
-      lengthOfShip = 3;
+      lengthOfShip = 2;
       break;
     default:
       break;

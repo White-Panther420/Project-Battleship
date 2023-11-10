@@ -98,8 +98,19 @@ const placeShipOnBoard = (playerName, ships, square, orientation) => {
   const player1Board = document.querySelector(".player1Board");
   const player1BoardSquare = player1Board.querySelector(`[data-state = "${pointAAttribute}"]`);
 
+  const paintedSquares = document.querySelectorAll(".painted");
+  paintedSquares.forEach((paintedSquare) => {
+    paintedSquare.classList.add("shipPlaced");
+  });
+
   if (playerName === "AI") {
     const squareToPlaceImg = placeShipImg(square, image, firstShipLength, orientation);
+
+    // Clear AI board of mmarkings
+    const shipsPlacedSquares = document.querySelectorAll(".shipPlaced");
+    shipsPlacedSquares.forEach((markedSquare) => {
+      markedSquare.style.background = "none";
+    });
     // Hide AI ships
     const imageContainer = squareToPlaceImg.querySelector(".imgContainer");
     imageContainer.style.background = "none";
@@ -108,10 +119,6 @@ const placeShipOnBoard = (playerName, ships, square, orientation) => {
   } else {
     // Avoid placing image on modal gameboard
     placeShipImg(player1BoardSquare, image, firstShipLength, orientation);
-    const paintedSquares = document.querySelectorAll(".painted");
-    paintedSquares.forEach((paintedSquare) => {
-      paintedSquare.classList.add("shipPlaced");
-    });
   }
 
   // Place ship in array
@@ -134,11 +141,13 @@ const placeShipOnBoard = (playerName, ships, square, orientation) => {
   }
 };
 // Checks to make sure move is legal and not overlapping with other ships
-const checkForIllegalMove = (square, orientation, ships) => {
+const checkForIllegalMove = (square, orientation, ships, playerName) => {
   // Get (x, y) coordinate of square as strings in an array
   const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
   // Turn those strings into ints
   const squareCoordinate = squareCoordinateStr.map((match) => parseInt(match, 10));
+  // Select appropriate gameboard
+  const board = document.querySelector(`.${playerName}Board`);
   // Will determine if a square can be clicked instead of repeating logic from mouseover
   let legalMove;
 
@@ -147,7 +156,7 @@ const checkForIllegalMove = (square, orientation, ships) => {
     legalMove = false;
     if (orientation === "horizontal") {
       const dataState = `(${squareCoordinate[0] + k}, ${squareCoordinate[1]})`;
-      const placementSquare = document.querySelector(`[data-state="${dataState}"]`);
+      const placementSquare = board.querySelector(`[data-state="${dataState}"]`);
       if (placementSquare === null || placementSquare.classList.contains("shipPlaced")) {
         // Visual message letting the user know they're attempting to place a ship
         // on an invalid spot on the board
@@ -160,7 +169,7 @@ const checkForIllegalMove = (square, orientation, ships) => {
       }
     } else {
       const dataState = `(${squareCoordinate[0]}, ${squareCoordinate[1] + k})`;
-      const placementSquare = document.querySelector(`[data-state="${dataState}"]`);
+      const placementSquare = board.querySelector(`[data-state="${dataState}"]`);
       if (placementSquare === null || placementSquare.classList.contains("shipPlaced")) {
         eraseSquares();
         break;
@@ -189,7 +198,7 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
         // eslint-disable-next-line no-loop-func
         square.addEventListener("mouseenter", () => {
           const orientation = document.querySelector(".rotateShipBtn").getAttribute("id");
-          legalMove = checkForIllegalMove(square, orientation, ships);
+          legalMove = checkForIllegalMove(square, orientation, ships, "placement");
         });
         square.addEventListener("mouseleave", () => {
           // Clear squares of bg color
@@ -207,10 +216,10 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
       } else { // Regular gameboard
         // eslint-disable-next-line no-lonely-if
         if (playerName === "AI") {
-          square.addEventListener("mouseenter", () => {
+          square.addEventListener("mouseover", () => {
             square.style.background = "green";
           });
-          square.addEventListener("mouseleave", () => {
+          square.addEventListener("mouseout", () => {
             square.style.background = "none";
           });
         }
@@ -269,6 +278,7 @@ const displayPlacementBoardModal = () => {
     }
   });
   const placementBoard = createGameBoardGUI("placement", true, ships);
+  placementBoard.classList.add("placementBoard");
 
   modal.appendChild(welcomeHeader);
   modal.appendChild(welcomeMsg);
@@ -295,7 +305,7 @@ const placeAIShips = () => {
 
     let square = makeAIMOve();
     // Check if move is legal and ships are not overlapping
-    while (!checkForIllegalMove(square, orientation, AIShips)) {
+    while (!checkForIllegalMove(square, orientation, AIShips, "AI")) {
       square = makeAIMOve();
     }
 

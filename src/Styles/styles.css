@@ -142,43 +142,42 @@ h1{
     align-items: center;
 }
 
-
 .onePieceLogoImg{
-    position: static;
+    position: absolute;
 
-    width: max(600px, 20%);
-    height: max(200px, 20%);
+    width: max(200px, 30%);
+    height: max(75px, 20%);
 
     left: 49%;
     top: 12%;
 
-    transform: translate(120%, 30%);
+    transform: translate(-50%, -50%);
 
     z-index: 8;
 }
 
 .xLogo{
-    position: static;
-    width: max(400px, 40%);
-    height: max(400px, 40%);
+    position: absolute;
+    width: max(200px, 40%);
+    height: max(200px, 40%);
 
     left: 50%;
     top: 16%;
 
-    transform: translate(10%, 0%);
+    transform: translate(-50%, -50%);
 
 }
 
 .battleshipLogo{
-    position: static;
+    position: absolute;
 
-    width: max(600px, 28%);
-    height: max(150px, 15%);
+    width: max(200px, 28%);
+    height: max(50px, 15%);
 
     left: 50%;
     top: 20%;
 
-    transform: translate(-100%, 110%);
+    transform: translate(-50%, -50%);
 }
 
 .gameBoardContainers{
@@ -264,6 +263,10 @@ h1{
 
     border: 2px solid rgb(255, 255, 255);
 }
+
+.AI.square:hover {
+    background: green;
+}  
 
 .akainuImg{
     height: min(4000px, 80vh);
