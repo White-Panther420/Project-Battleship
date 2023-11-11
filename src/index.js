@@ -4,6 +4,7 @@ import "./Styles/styles.css";
 import { createPage, createImage } from "./LoadPage";
 
 import Explosion from "./Assets/Images/Explosion.png";
+import MissX from "./Assets/Images/missX.webp";
 
 const Battleship = (shipType) => {
   let numTimesHit = 0;
@@ -41,8 +42,11 @@ const Battleship = (shipType) => {
       isSunk();
     }
   };
+  const getShipType = () => shipType;
 
-  return { hit, getLengthOfShip, getSunkState };
+  return {
+    hit, getLengthOfShip, getSunkState, getShipType,
+  };
 };
 
 const player = (name) => {
@@ -85,22 +89,23 @@ const GameBoard = (() => {
       }
     }
   };
-  const recieveAttack = (attackCoordinate, player, opponentBoardName) => {
+  const recieveAttack = (attackCoordinate, attackingPlayer, opponentBoardName) => {
     const x = attackCoordinate[0];
     const y = attackCoordinate[1];
     const board = boards[opponentBoardName];
-
-    if (typeof board[y][x] === "object") {
-      // Check if ship is sunk
-      if (board[y][x].hit().getSunkState()) {
-        player.reduceNumShips();
-        if (player.getNumShips() === 0) {
-          return "over";
+    const attackedSquare = board[y][x];
+    if (typeof attackedSquare === "object") {
+      attackedSquare.hit();
+      if (attackedSquare.getSunkState()) {
+        attackingPlayer.reduceNumShips();
+        if (attackingPlayer.getNumShips() === 0) {
+          return "over"; // Game over
         }
-        return "sunk";
+        return ["sunk", attackedSquare.getShipType()];
       }
       return "hit";
-    } if (board[y][x] === "0") {
+    }
+    if (board[y][x] === "0") {
       board[y][x] = "1";
       return "miss";
     }
@@ -115,34 +120,22 @@ const GameBoard = (() => {
 
 const GUIController = (() => {
   const markSquare = (square, isHit) => {
-    switch (isHit) {
-      case "hit":
-      {
-        const explosion = createImage(Explosion, "explosion");
-        square.appendChild(explosion);
-        break;
-      }
-      case "sunk":
-      {
-        const imageContainer = square.querySelector(".imgContainer");
+    if (isHit === "miss") {
+      const missedMark = createImage(MissX, "miss");
+      square.appendChild(missedMark);
+    } else if (isHit === "invalid") {
+      square.setAttribute("id", "invalid");
+    } else {
+      const explosion = createImage(Explosion, "explosion");
+      square.appendChild(explosion);
+      if (isHit[0] === "sunk") {
+        const imageContainer = document.querySelector(`.imgContainer.${isHit[1]}`);
+        imageContainer.style.display = "static";
         imageContainer.style.background = "black";
-
-        // Reveal sunk ship
-        if (square.classList.contains("AI")) {
-          const shipImg = imageContainer.querySelector(".shipImg");
-          shipImg.style.opacity = 2.0;
-        }
-        break;
       }
-      case "miss":
-      {
-        square.style.background = "red";
-        break;
-      }
-      default:
-        break;
     }
   };
+  return { markSquare };
 })();
 
 const GameController = (() => {

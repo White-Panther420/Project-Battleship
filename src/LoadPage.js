@@ -113,9 +113,11 @@ const placeShipOnBoard = (playerName, ships, square, orientation) => {
     });
     // Hide AI ships
     const imageContainer = squareToPlaceImg.querySelector(".imgContainer");
-    imageContainer.style.background = "none";
+    // Add name of ship to square to make it easier to mark square
+    imageContainer.classList.add(`${firstKeyName}`);
+    imageContainer.style.display = "none";
     const shipImg = imageContainer.querySelector(".shipImg");
-    shipImg.style.opacity = 0;
+    shipImg.style.display = "none";
   } else {
     // Avoid placing image on modal gameboard
     placeShipImg(player1BoardSquare, image, firstShipLength, orientation);
@@ -214,7 +216,6 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
           }
         });
       } else { // Regular gameboard
-        // eslint-disable-next-line no-lonely-if
         if (playerName === "AI") {
           square.addEventListener("mouseover", () => {
             square.style.background = "green";
@@ -252,8 +253,8 @@ const makeAIMOve = () => {
 const displayPlacementBoardModal = () => {
   const ships = {
     carrier: [5, Queen],
-    battleship: [4, OroJackson],
-    cruiser: [4, Boa],
+    battleship: [4, Boa],
+    cruiser: [3, OroJackson],
     submarine: [3, LawSub],
     destroyer: [2, ThousandSunny],
   };
@@ -292,8 +293,8 @@ const displayPlacementBoardModal = () => {
 const placeAIShips = () => {
   const AIShips = {
     carrier: [5, Queen],
-    battleship: [4, OroJackson],
-    cruiser: [4, Boa],
+    battleship: [4, Boa],
+    cruiser: [3, OroJackson],
     submarine: [3, LawSub],
     destroyer: [2, ThousandSunny],
   };
