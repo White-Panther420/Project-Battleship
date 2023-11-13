@@ -240,11 +240,13 @@ h1{
     font-family: "OnePieceFont";
 }
 
-.player1Name{
+.player1Name,
+.player1NumShipsP{
     color: rgb(157, 11, 230);
 }
 
-.AIName{
+.AIName,
+.AINumShipsP{
     color: rgb(226, 66, 12);
 }
 
@@ -274,6 +276,30 @@ h1{
 .imgContainer{
     pointer-events: none;
     z-index: -10;
+}
+
+.shipInfoContainer{
+    
+    padding-left: 50px;
+    padding-top: 12px;
+
+    align-items: center;
+
+    gap: 25px;
+}
+
+.shipImgIcon{
+    width: 60px;
+    height: 60px;
+}
+
+.player1NumShipsP,
+.AINumShipsP{
+    font-weight: 700;
+
+    font-size: 24px;
+
+    font-family: "OnePieceFont";
 }
 
 .akainuImg{
@@ -307,14 +333,16 @@ h1{
     font-weight: 700;
 
     background-image: url("../Assets/Images/GumGum.jpg");
-
+    
     color: white
 }
 
 .explosion,
 .miss{
-    width: 35px;
-    height: 35px;
+    width: 25px;
+    height: 25px;
+
+    margin-top: 5px;
 
     z-index: 20;
 }

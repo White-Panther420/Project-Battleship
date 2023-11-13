@@ -1,7 +1,10 @@
+/* eslint-disable prefer-destructuring */
 /* eslint-disable no-param-reassign */
 /* eslint-disable import/no-import-module-exports */
 import "./Styles/styles.css";
-import { createPage, createImage } from "./LoadPage";
+import {
+  createPage, createImage, startTurn, makeAIClickSquare,
+} from "./LoadPage";
 
 import Explosion from "./Assets/Images/Explosion.png";
 import MissX from "./Assets/Images/missX.webp";
@@ -51,7 +54,7 @@ const Battleship = (shipType) => {
 
 const player = (name) => {
   const getName = () => name;
-  let numShips = 0;
+  let numShips = 5;
   const getNumShips = () => numShips;
   const reduceNumShips = () => {
     numShips -= 1;
@@ -96,11 +99,9 @@ const GameBoard = (() => {
     const attackedSquare = board[y][x];
     if (typeof attackedSquare === "object") {
       attackedSquare.hit();
+      board[y][x] = "1";
       if (attackedSquare.getSunkState()) {
         attackingPlayer.reduceNumShips();
-        if (attackingPlayer.getNumShips() === 0) {
-          return "over"; // Game over
-        }
         return ["sunk", attackedSquare.getShipType()];
       }
       return "hit";
@@ -124,15 +125,10 @@ const GUIController = (() => {
       const missedMark = createImage(MissX, "miss");
       square.appendChild(missedMark);
     } else if (isHit === "invalid") {
-      square.setAttribute("id", "invalid");
+      square.removeEventListener("click", startTurn);
     } else {
       const explosion = createImage(Explosion, "explosion");
       square.appendChild(explosion);
-      if (isHit[0] === "sunk") {
-        const imageContainer = document.querySelector(`.imgContainer.${isHit[1]}`);
-        imageContainer.style.display = "static";
-        imageContainer.style.background = "black";
-      }
     }
   };
   return { markSquare };
@@ -145,18 +141,25 @@ const GameController = (() => {
     const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
     // Turn those strings into ints
     const squareCoordinate = squareCoordinateStr.map((match) => parseInt(match, 10));
-    let turn;
+    let opponent;
     if (playerName === "player1") {
-      turn = 0;
+      opponent = players[1];
     } else {
-      turn = 1;
+      opponent = players[0];
     }
-
-    const isHit = GameBoard.recieveAttack(squareCoordinate, players[turn], opponentBoardName);
-    if (isHit === "over") {
-      return "game over";
+    const opponentName = opponent.getName();
+    const isHit = GameBoard.recieveAttack(squareCoordinate, opponent, opponentBoardName);
+    if (isHit[0] === "sunk") {
+      const numShipsP = document.querySelector(`.${opponentName}NumShipsP`);
+      numShipsP.textContent = `Ships Remaining: ${opponent.getNumShips()}`;
     }
     GUIController.markSquare(square, isHit);
+    if (opponent.getNumShips() === 0) {
+      return "over"; // Game over
+    }
+    if (opponentName === "AI") {
+      makeAIClickSquare();
+    }
   };
 
   return { playTurn };
