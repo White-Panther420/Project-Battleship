@@ -121,11 +121,14 @@ const GameBoard = (() => {
 
 const GUIController = (() => {
   const markSquare = (square, isHit) => {
-    if (isHit === "miss") {
+    if (square.classList.contains("AI")) {
+      square.removeEventListener("click", startTurn);
+    }
+    if (isHit === "invalid") {
+      return "invalid";
+    } if (isHit === "miss") {
       const missedMark = createImage(MissX, "miss");
       square.appendChild(missedMark);
-    } else if (isHit === "invalid") {
-      square.removeEventListener("click", startTurn);
     } else {
       const explosion = createImage(Explosion, "explosion");
       square.appendChild(explosion);
@@ -135,7 +138,7 @@ const GUIController = (() => {
 })();
 
 const GameController = (() => {
-  const players = [player("Player1"), player("AI")];
+  const players = [player("player1"), player("AI")];
 
   const playTurn = (square, playerName, opponentBoardName) => {
     const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
@@ -148,17 +151,28 @@ const GameController = (() => {
       opponent = players[0];
     }
     const opponentName = opponent.getName();
-    const isHit = GameBoard.recieveAttack(squareCoordinate, opponent, opponentBoardName);
+    let isHit = GameBoard.recieveAttack(squareCoordinate, opponent, opponentBoardName);
+    GUIController.markSquare(square, isHit);
+
+    if (opponent.getNumShips() === 0) {
+      return "over"; // Game over
+    }
     if (isHit[0] === "sunk") {
       const numShipsP = document.querySelector(`.${opponentName}NumShipsP`);
       numShipsP.textContent = `Ships Remaining: ${opponent.getNumShips()}`;
     }
-    GUIController.markSquare(square, isHit);
-    if (opponent.getNumShips() === 0) {
-      return "over"; // Game over
+
+    while (opponentName === "player1" && isHit === "invalid") {
+      makeAIClickSquare();
+      isHit = "valid";
+      console.log(`LOOP: ${isHit}`);
+      console.log(squareCoordinate);
     }
+
     if (opponentName === "AI") {
       makeAIClickSquare();
+      console.log(isHit);
+      console.log(squareCoordinate);
     }
   };
 
