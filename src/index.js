@@ -3,7 +3,7 @@
 /* eslint-disable import/no-import-module-exports */
 import "./Styles/styles.css";
 import {
-  createPage, createImage, startTurn, makeAIClickSquare,
+  createPage, createImage, startTurn, makeAIClickSquare, changeSquareColor, displayGameOverModal,
 } from "./LoadPage";
 
 import Explosion from "./Assets/Images/Explosion.png";
@@ -102,12 +102,12 @@ const GameBoard = (() => {
       board[y][x] = "1";
       if (attackedSquare.getSunkState()) {
         attackingPlayer.reduceNumShips();
-        return ["sunk", attackedSquare.getShipType()];
+        return "sunk";
       }
       return "hit";
     }
     if (board[y][x] === "0") {
-      board[y][x] = "1";
+      board[y][x] = "X";
       return "miss";
     }
     // Player or AI tries to attack same spot twice
@@ -124,18 +124,19 @@ const GUIController = (() => {
     if (isHit === "miss") {
       const missedMark = createImage(MissX, "miss");
       square.appendChild(missedMark);
-    } else if (isHit === "invalid") {
-      square.removeEventListener("click", startTurn);
-    } else {
+      // So AI doesn't have to go through all functions when it makes a wrong move
+      square.classList.add("clicked");
+    } else if (isHit === "hit" || isHit === "sunk") {
       const explosion = createImage(Explosion, "explosion");
       square.appendChild(explosion);
+      square.classList.add("clicked");
     }
   };
   return { markSquare };
 })();
 
 const GameController = (() => {
-  const players = [player("Player1"), player("AI")];
+  const players = [player("player1"), player("AI")];
 
   const playTurn = (square, playerName, opponentBoardName) => {
     const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
@@ -149,14 +150,21 @@ const GameController = (() => {
     }
     const opponentName = opponent.getName();
     const isHit = GameBoard.recieveAttack(squareCoordinate, opponent, opponentBoardName);
-    if (isHit[0] === "sunk") {
+    if (isHit === "sunk") {
       const numShipsP = document.querySelector(`.${opponentName}NumShipsP`);
       numShipsP.textContent = `Ships Remaining: ${opponent.getNumShips()}`;
     }
     GUIController.markSquare(square, isHit);
     if (opponent.getNumShips() === 0) {
+      const allAISquares = document.querySelectorAll(".square.AI");
+      allAISquares.forEach((AISquare) => {
+        AISquare.removeEventListener("click", startTurn);
+        AISquare.removeEventListener("mouseover", changeSquareColor);
+      });
+      displayGameOverModal(opponentName);
       return "over"; // Game over
     }
+
     if (opponentName === "AI") {
       makeAIClickSquare();
     }

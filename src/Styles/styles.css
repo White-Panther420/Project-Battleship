@@ -35,6 +35,19 @@ body{
     overflow-x: hidden;
 }
 
+.modalBg{
+    position: absolute;
+    
+    min-width: 100vw;
+    min-height: 100vh;
+
+    background-color: rgba(255, 255, 255, 0.3);
+
+    backdrop-filter: blur(5px);
+    
+    z-index: 180;
+}
+
 .modal{
     position: absolute;
     
@@ -255,6 +268,19 @@ h1{
     z-index: 15;
 }
 
+.player1Board{
+    margin-top: -350px;
+}
+
+.boardCover{
+    width: 392px;
+    height: 350px;
+
+    z-index: 100;
+
+    transform: translate(2px, 2px);
+}
+
 .rowDiv{
     display: flex;
     height: 35px;
@@ -265,12 +291,6 @@ h1{
     height: inherit;
 
     border: 2px solid rgb(255, 255, 255);
-
-    z-index: 50;
-}
-
-.square.AI:hover{
-    background-color: green;
 }
 
 .imgContainer{
