@@ -27,7 +27,9 @@ contentDiv.style.backgroundRepeat = "no-repeat";
 contentDiv.style.backgroundSize = "cover";
 contentDiv.style.backgroundPosition = "center";
 
-let AIClicks = 0;
+// Variables to help AI become smarter
+let prevAIMove = "";
+let prevAIMoveResult = "";
 
 const createElement = (elementName, elemenetClassName, elementID = "") => {
   const newElement = document.createElement(elementName);
@@ -61,12 +63,12 @@ const eraseSquares = () => {
   });
 };
 
-const placeShipImg = (square, shipImage, shipLength, orientation) => {
+const placeShipImg = (square, shipImage, shipLength, shipName, orientation) => {
   const squareWidth = square.offsetWidth;
 
   if (orientation === "vertical") {
     // Create a container for the image
-    const imgContainer = createElement("div", "imgContainer");
+    const imgContainer = createElement("div", `imgContainer ${shipName}`);
     imgContainer.style.width = `${squareWidth - 4}px`;
     imgContainer.style.height = `${(squareWidth - 3) * shipLength}px`;
     imgContainer.style.background = "rgb(83, 129, 237)";
@@ -79,17 +81,19 @@ const placeShipImg = (square, shipImage, shipLength, orientation) => {
 
     imgContainer.appendChild(shipImage);
     square.appendChild(imgContainer);
+    square.classList.add("imgHolderVertical");
   } else {
     // Create a container for the image
-    const imgContainer = createElement("div", "imgContainer");
+    const imgContainer = createElement("div", `imgContainer ${shipName}`);
     imgContainer.style.width = `${squareWidth * shipLength}px`;
-    imgContainer.style.height = `${squareWidth - 8}px`;
+    imgContainer.style.height = `${squareWidth - 4}px`;
 
-    shipImage.style.height = `${squareWidth - 8}px`;
+    shipImage.style.height = `${squareWidth - 4}px`;
     shipImage.style.width = `${(squareWidth) * shipLength}px`;
     imgContainer.style.background = "rgb(83, 129, 237)";
     imgContainer.appendChild(shipImage);
     square.appendChild(imgContainer);
+    square.classList.add("imgHolderHorizontal");
   }
 
   return square;
@@ -116,7 +120,7 @@ const placeShipOnBoard = (playerName, ships, square, orientation) => {
   });
 
   if (playerName === "AI") {
-    const squareToPlaceImg = placeShipImg(square, image, firstShipLength, orientation);
+    const squareToPlaceImg = placeShipImg(square, image, firstShipLength, firstKeyName, orientation);
 
     // Clear AI board of mmarkings
     const shipsPlacedSquares = document.querySelectorAll(".shipPlaced");
@@ -127,12 +131,11 @@ const placeShipOnBoard = (playerName, ships, square, orientation) => {
     const imageContainer = squareToPlaceImg.querySelector(".imgContainer");
     // Add name of ship to square to make it easier to mark square
     imageContainer.classList.add(`${firstKeyName}`);
-    imageContainer.style.display = "none";
-    const shipImg = imageContainer.querySelector(".shipImg");
-    shipImg.style.display = "none";
+    imageContainer.style.background = "none";
+    image.style.opacity = 0;
   } else {
     // Avoid placing image on modal gameboard
-    placeShipImg(player1BoardSquare, image, firstShipLength, orientation);
+    placeShipImg(player1BoardSquare, image, firstShipLength, firstKeyName, orientation);
   }
 
   // Place ship in array
@@ -204,12 +207,13 @@ const startTurn = (event) => {
     // Player clicked AI square
     GameController.playTurn(square, "player1", "AIBoard");
   } else {
-    GameController.playTurn(square, "AI", "player1Board");
+    prevAIMoveResult = GameController.playTurn(square, "AI", "player1Board");
   }
 };
 
 const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
   const gameBoard = createElement("div", "gameBoard");
+  gameBoard.classList.add(`${playerName}Board`);
   let legalMove;
   for (let i = 0; i < 10; i += 1) {
     // Make it easier to give squares (x, y) coordinates
@@ -264,21 +268,61 @@ const makeAIMOve = () => {
   return dataState;
 };
 
+const makeSmartAIMove = () => {
+  // Get (x, y) coordinate of prevMove as strings in an array
+  const prevMoveCoordinatesStr = prevAIMove.match(/\d+/g);
+  // Turn coordinates into ints
+  const prevMoveCoordinates = prevMoveCoordinatesStr.map((match) => parseInt(match, 10));
+  const x = prevMoveCoordinates[0];
+  const y = prevMoveCoordinates[1];
+  const moveDirections = {
+    left: [x - 1, y],
+    right: [x + 1, y],
+    up: [x, y + 1],
+    down: [x, y - 1],
+  };
+
+  let moveDirection;
+  // Ensure AI is in bounds of game board
+  do {
+    // Generate a number 0-3 inlusive
+    const randomDirection = Math.floor(Math.random() * 4);
+    console.log(randomDirection);
+    moveDirection = Object.values(moveDirections)[randomDirection];
+    console.log(moveDirection);
+    // eslint-disable-next-line max-len
+  } while (moveDirection[0] < 0 || moveDirection[1] < 0 || moveDirection[0] > 9 || moveDirection[1] > 9);
+
+  const dataState = `(${moveDirection[0]}, ${moveDirection[1]})`;
+  return dataState;
+};
+
 const makeAIClickSquare = () => {
   const playerBoard = document.querySelector(".player1Board");
   let dataState;
   let targetSquare;
 
-  // Keep picking a square while the selected one is invalid
-  do {
-    dataState = makeAIMOve();
-    targetSquare = playerBoard.querySelector(`[data-state = "${dataState}"]`);
-  } while (targetSquare.classList.contains("clicked"));
-
+  if (prevAIMoveResult === "hit") {
+    // Keep making a move close to the hit while invalid
+    do {
+      dataState = makeSmartAIMove();
+      targetSquare = playerBoard.querySelector(`[data-state = "${dataState}"]`);
+    } while (targetSquare.classList.contains("clicked"));
+  } else {
+    // Keep picking a square while the selected one is invalid
+    do {
+      dataState = makeAIMOve();
+      targetSquare = playerBoard.querySelector(`[data-state = "${dataState}"]`);
+    } while (targetSquare.classList.contains("clicked"));
+  }
+  prevAIMove = dataState;
   targetSquare.click();
-  AIClicks++;
   targetSquare.classList.add("clicked");
 };
+
+const restartGame = () => {
+
+}
 
 // Displays the board where player will place their ships
 const displayPlacementBoardModal = () => {
@@ -326,22 +370,22 @@ const displayPlacementBoardModal = () => {
   contentDiv.appendChild(modalBg);
 };
 
-const displayGameOverModal = (winner) => {
+const displayGameOverModal = (loser) => {
   const gameOverModalBg = createElement("div", "modalBg");
   const gameOverModal = createElement("modal", "modal");
   gameOverModalBg.appendChild(gameOverModal);
 
-  const winMsgP = createElement("div", "winMsgP");
+  const winMsgP = createElement("h1", "winMsgP");
   const consequenceMsgP = createElement("p", "consequenceMsgP");
   let endImg;
 
-  if (winner === "AI") {
+  if (loser === "player1") {
     winMsgP.textContent = "YOU LOSE!!!";
-    endImg = createImage(Win, "endImg");
+    endImg = createImage(Lose, "loseEndImg");
     consequenceMsgP.textContent = "The Navy has captured your crew and Monkey D. Luffy has been sentenced to LIFE in Impeldown!";
   } else {
     winMsgP.textContent = "YOI WIN!!!";
-    endImg = createImage(Lose, "endImg");
+    endImg = createImage(Win, "winEndImg");
     consequenceMsgP.textContent = "You have saved your crew and yourself from the clutches of Akainu! You live to sail another day!!";
   }
 
@@ -350,12 +394,11 @@ const displayGameOverModal = (winner) => {
   const restartBtn = createElement("button", "restartBtn");
   restartBtn.textContent = "Restart Game";
   restartBtn.addEventListener("click", () => {
-    const gameBoardWrappers = document.querySelectorAll(".gameBoardWrapper");
-    gameBoardWrappers.forEach((boardWrapper) => {
-      boardWrapper.innerHTML = " ";
+    
+      
     });
     gameOverModalBg.style.display = "none";
-    const modalBg = document.querySelector("modalBg");
+    const modalBg = document.querySelector(".modalBg");
     modalBg.style.display = "block";
   });
 
@@ -431,12 +474,13 @@ const createPage = () => {
   playerInfoContainer.appendChild(player1NameP);
 
   // Make it easier to make a new gameboard by clearing out current one
-  const gameBoardWrapper = createElement("div", "gameBoardWrapper");
-  const player1GameBoard = createGameBoardGUI("player1");
-  player1GameBoard.classList.add("player1Board");
-  gameBoardWrapper.appendChild(player1GameBoard);
-  // Prevent user form clicking their own squares
+  const gameBoardWrapper = createElement("div", "gameBoardWrapper player1Wrapper");
   const boardCover = createElement("div", "boardCover");
+  const player1GameBoard = createGameBoardGUI("player1");
+  gameBoardWrapper.appendChild(boardCover);
+  gameBoardWrapper.appendChild(player1GameBoard);
+
+  // Prevent user form clicking their own squares
 
   const shipInfoContainer = createElement("div", "shipInfoContainer flex");
   const shipImgIcon = createImage(ThousandSunny, "shipImgIcon");
@@ -446,7 +490,6 @@ const createPage = () => {
   shipInfoContainer.appendChild(numShipsP);
 
   player1GameBoardContainer.appendChild(playerInfoContainer);
-  player1GameBoardContainer.appendChild(boardCover);
   player1GameBoardContainer.appendChild(gameBoardWrapper);
   player1GameBoardContainer.appendChild(shipInfoContainer);
 
@@ -457,9 +500,8 @@ const createPage = () => {
   AINameP.textContent = "Admiral Sakazuki";
   AIInfoContainer.appendChild(AIToken);
   AIInfoContainer.appendChild(AINameP);
-  const AIGameBoardWrapper = createElement("div", "gameBoardWrapper");
+  const AIGameBoardWrapper = createElement("div", "gameBoardWrapper AIWrapper");
   const AIGameBoard = createGameBoardGUI("AI");
-  AIGameBoard.classList.add("AIBoard");
   AIGameBoardWrapper.appendChild(AIGameBoard);
 
   const AIshipInfoContainer = createElement("div", "shipInfoContainer flex");
@@ -479,6 +521,11 @@ const createPage = () => {
   const actionButtonsDiv = createElement("div", "actionButtonsDiv flex");
   const quitGameBtn = createElement("button", "quitGameBtn");
   quitGameBtn.textContent = "Quit Game";
+  quitGameBtn.addEventListener("click", () => {
+
+  });
+
+
   const sound = createImage(SoundIcon, "sound");
   sound.addEventListener("click", () => {
     veryStrongestAudio.play();

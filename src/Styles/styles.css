@@ -86,22 +86,22 @@ body{
     font-weight: 700;
 }
 
-.modal > .gameBoard > .rowDiv > .square,
-.modal > .gameBoard
+.modal > .gameBoardWrapper > .gameBoard > .rowDiv > .square,
+.modal > .gameBoardWrapper > .gameBoard
 {
     border: 2px rgb(135, 93, 9) solid;
 }
 
-.modal > .gameBoard
+.modal > .gameBoardWrapper > .gameBoard
 {
     margin-top: 40px;
 }
 
-.modal > .gameBoard > .rowDiv{
+.modal > .gameBoardWrapper >  .gameBoard > .rowDiv{
     height: 35px;
 }
 
-.modal > .gameBoard > .rowDiv > .square
+.modal > .gameBoardWrapper > .gameBoard > .rowDiv > .square
 {
     width: 35px;
     height: 35px;
@@ -159,7 +159,7 @@ h1{
     position: absolute;
 
     width: max(200px, 30%);
-    height: max(75px, 20%);
+    height: max(75px, 22%);
 
     left: 49%;
     top: 12%;
@@ -276,9 +276,11 @@ h1{
     width: 392px;
     height: 350px;
 
+    position: relative;
+
     z-index: 100;
 
-    transform: translate(2px, 2px);
+    transform: translate(2px, 4px);
 }
 
 .rowDiv{
@@ -291,9 +293,12 @@ h1{
     height: inherit;
 
     border: 2px solid rgb(255, 255, 255);
+    z-index: 50;
 }
 
 .imgContainer{
+    position: relative;
+
     pointer-events: none;
     z-index: -10;
 }
@@ -345,7 +350,8 @@ h1{
     height: 40px;
 }
 
-.quitGameBtn{
+.quitGameBtn,
+.restartBtn{
     width: 150px;
     height: 40px;
 
@@ -370,3 +376,35 @@ h1{
 #invalid{
     background-color: red;
 }
+
+.winMsgP{
+    font-size: 50px;
+    font-weight: 1000;
+}
+
+.consequenceMsgP,
+.restartMsgP{
+    font-size: 20px;
+    font-weight: 1000;
+
+    margin-top: 12px;
+}
+
+.loseEndImg{
+    width: 90%;
+    height: auto;
+    
+    margin-top: 50px;
+}
+
+.winEndImg{
+    width: 90%;
+    height: 300px;
+
+    margin-top: 50px;
+}
+
+.restartBtn{
+    margin-top: 12px;
+}
+

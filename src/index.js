@@ -54,12 +54,17 @@ const Battleship = (shipType) => {
 
 const player = (name) => {
   const getName = () => name;
-  let numShips = 5;
+  let numShips = 0;
   const getNumShips = () => numShips;
   const reduceNumShips = () => {
     numShips -= 1;
   };
-  return { getName, getNumShips, reduceNumShips };
+  const setNumShips = () => {
+    numShips = 5;
+  };
+  return {
+    getName, getNumShips, reduceNumShips, setNumShips,
+  };
 };
 
 const GameBoard = (() => {
@@ -102,7 +107,7 @@ const GameBoard = (() => {
       board[y][x] = "1";
       if (attackedSquare.getSunkState()) {
         attackingPlayer.reduceNumShips();
-        return "sunk";
+        return ["sunk", attackedSquare.getShipType()];
       }
       return "hit";
     }
@@ -114,21 +119,58 @@ const GameBoard = (() => {
     return "invalid";
   };
 
+  const resetGame = (players) => {
+    for (const board in boards) {
+      if (boards.hasOwnProperty(board)) {
+        boards[board] = createGameBoard();
+        console.log("NEW");
+        console.log(board);
+      }
+    }
+    players.forEach((player) => {
+      player.setNumShips();
+    });
+  };
+
   return {
-    createGameBoard, placeShip, recieveAttack,
+    placeShip, recieveAttack, resetGame,
   };
 })();
 
 const GUIController = (() => {
-  const markSquare = (square, isHit) => {
+  const markSquare = (square, isHit, opponentBoardName) => {
     if (isHit === "miss") {
       const missedMark = createImage(MissX, "miss");
       square.appendChild(missedMark);
       // So AI doesn't have to go through all functions when it makes a wrong move
       square.classList.add("clicked");
-    } else if (isHit === "hit" || isHit === "sunk") {
+    } else if (isHit === "hit" || isHit[0] === "sunk") {
       const explosion = createImage(Explosion, "explosion");
-      square.appendChild(explosion);
+      // Shift explosion img for first square to avoid pushing down the explosion img
+      if (square.classList.contains("imgHolderHorizontal")) {
+        explosion.style.transform = "translate(0%, -138%)";
+        square.appendChild(explosion);
+        // Same thing but now we avoid shifting it all the way down
+        // Since it will be pushed all the way below vertical div (pretty low)
+      } else if (square.classList.contains("imgHolderVertical")) {
+        const imgContainer = square.querySelector(".imgContainer");
+        imgContainer.appendChild(explosion);
+        explosion.style.transform = "translate(0%, -155%)";
+        // Append exploson like normal
+      } else {
+        square.appendChild(explosion);
+      }
+
+      if (isHit[0] === "sunk") {
+        const board = document.querySelector(`.${opponentBoardName}`);
+        const imgContainer = board.querySelector(`.imgContainer.${isHit[1]}`);
+        imgContainer.style.background = "rgba(59, 59, 59, 0.4)";
+        if (opponentBoardName === "AIBoard") {
+          imgContainer.style.display = "block";
+          const shipImg = imgContainer.querySelector(".shipImg");
+          shipImg.style.opacity = 2;
+        }
+      }
       square.classList.add("clicked");
     }
   };
@@ -150,11 +192,11 @@ const GameController = (() => {
     }
     const opponentName = opponent.getName();
     const isHit = GameBoard.recieveAttack(squareCoordinate, opponent, opponentBoardName);
-    if (isHit === "sunk") {
+    if (isHit[0] === "sunk") {
       const numShipsP = document.querySelector(`.${opponentName}NumShipsP`);
       numShipsP.textContent = `Ships Remaining: ${opponent.getNumShips()}`;
     }
-    GUIController.markSquare(square, isHit);
+    GUIController.markSquare(square, isHit, opponentBoardName);
     if (opponent.getNumShips() === 0) {
       const allAISquares = document.querySelectorAll(".square.AI");
       allAISquares.forEach((AISquare) => {
@@ -162,12 +204,14 @@ const GameController = (() => {
         AISquare.removeEventListener("mouseover", changeSquareColor);
       });
       displayGameOverModal(opponentName);
+      GameBoard.resetGame(players);
       return "over"; // Game over
     }
 
     if (opponentName === "AI") {
       makeAIClickSquare();
     }
+    return isHit;
   };
 
   return { playTurn };
