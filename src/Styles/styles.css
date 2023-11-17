@@ -276,8 +276,7 @@ h1{
     z-index: 15;
 }
 
-.player1Board,
-.AIBoard{
+.player1Board{
     margin-top: -350px;
 }
 
@@ -289,6 +288,10 @@ h1{
     z-index: 100;
 
     transform: translate(2px, 4px);
+}
+
+.AIBoardCover{
+    background-color: white;
 }
 
 .rowDiv{

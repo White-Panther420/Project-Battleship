@@ -54,7 +54,7 @@ const Battleship = (shipType) => {
 
 const player = (name) => {
   const getName = () => name;
-  let numShips = 0;
+  let numShips = 5;
   const getNumShips = () => numShips;
   const reduceNumShips = () => {
     numShips -= 1;
@@ -136,11 +136,15 @@ const GUIController = (() => {
   const markSquare = (square, isHit, opponentBoardName) => {
     if (isHit === "miss") {
       const missedMark = createImage(MissX, "miss");
+      const missSfx = document.querySelector(".splashSfx");
+      missSfx.play();
       square.appendChild(missedMark);
       // So AI doesn't have to go through all functions when it makes a wrong move
       square.classList.add("clicked");
     } else if (isHit === "hit" || isHit[0] === "sunk") {
       const explosion = createImage(Explosion, "explosion");
+      const explosionSfx = document.querySelector(".explosionSfx");
+      explosionSfx.play();
       // Shift explosion img for first square to avoid pushing down the explosion img
       if (square.classList.contains("imgHolderHorizontal")) {
         explosion.style.transform = "translate(0%, -138%)";
@@ -179,6 +183,8 @@ const GameController = (() => {
     const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
     // Turn those strings into ints
     const squareCoordinate = squareCoordinateStr.map((match) => parseInt(match, 10));
+    const AIBoardCover = document.querySelector(".AIBoardCover");
+
     let opponent;
     if (playerName === "player1") {
       opponent = players[1];
@@ -191,7 +197,10 @@ const GameController = (() => {
       const numShipsP = document.querySelector(`.${opponentName}NumShipsP`);
       numShipsP.textContent = `Ships Remaining: ${opponent.getNumShips()}`;
     }
-    GUIController.markSquare(square, isHit, opponentBoardName);
+    AIBoardCover.style.display = "block";
+    setTimeout(GUIController.markSquare, 2000, square, isHit, opponentBoardName);
+    AIBoardCover.style.display = "none";
+
     if (opponent.getNumShips() === 0) {
       const allAISquares = document.querySelectorAll(".square.AI");
       allAISquares.forEach((AISquare) => {
@@ -204,7 +213,11 @@ const GameController = (() => {
     }
 
     if (opponentName === "AI") {
-      makeAIClickSquare();
+      // Delay move to let sfxs of player attack finish playing
+      // Prevent player from clicking board while AI waits
+      AIBoardCover.style.display = "block";
+      setTimeout(makeAIClickSquare, 2000);
+      AIBoardCover.style.display = "none";
     }
     return isHit;
   };

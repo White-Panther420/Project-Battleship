@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-param-reassign */
 /* eslint-disable import/no-import-module-exports */
 import Luffy from "./Assets/Images/Luffy.png";
@@ -35,15 +36,6 @@ import ExplosionSfx from "./Assets/Music/SFX/Explosion_SFX.mp4";
 
 import { GameBoard, GameController } from "./index.js";
 
-const contentDiv = document.getElementById("content");
-contentDiv.style.backgroundRepeat = "no-repeat";
-contentDiv.style.backgroundSize = "cover";
-contentDiv.style.backgroundPosition = "center";
-
-// Variables to help AI become smarter
-let prevAIMove = "";
-let prevAIMoveResult = "";
-
 const createElement = (elementName, elemenetClassName, elementID = "") => {
   const newElement = document.createElement(elementName);
   const classNames = elemenetClassName.split(" ");
@@ -62,6 +54,49 @@ const createImage = (ImportedImg, className) => {
   myImg.classList.add(className);
   return myImg;
 };
+
+const contentDiv = document.getElementById("content");
+contentDiv.style.backgroundRepeat = "no-repeat";
+contentDiv.style.backgroundSize = "cover";
+contentDiv.style.backgroundPosition = "center";
+
+const pageBgAudio = createElement("audio", "pageBgAudio");
+const veryStrongest = createElement("source", "bg");
+veryStrongest.src = VeryStrongest;
+const overtaken = createElement("source", "bg");
+overtaken.src = Overtaken;
+pageBgAudio.appendChild(veryStrongest);
+pageBgAudio.appendChild(overtaken);
+
+const cannonSfx = createElement("audio", "cannonSfx");
+cannonSfx.src = CannonSfx;
+const explosionSfx = createElement("audio", "explosionSfx");
+explosionSfx.src = ExplosionSfx;
+const splashSfx = createElement("audio", "splashSfx");
+splashSfx.src = SplashSfx;
+
+const loseAudio = createElement("audio", "loseMissAudio");
+const loseSfx = createElement("source", "sfx");
+loseSfx.src = LoseSfx;
+const loseBg = createElement("source", "bg");
+loseBg.src = loseBg;
+loseAudio.appendChild(loseSfx);
+loseAudio.appendChild(loseBg);
+
+const winAudio = createElement("audio", "audioContainer");
+const victory = createElement("source", "bg");
+victory.src = Victory;
+winAudio.appendChild(victory);
+
+contentDiv.appendChild(cannonSfx);
+contentDiv.appendChild(explosionSfx);
+contentDiv.appendChild(splashSfx);
+contentDiv.appendChild(loseAudio);
+contentDiv.appendChild(winAudio);
+
+// Variables to help AI become smarter
+let prevAIMove = "";
+let prevAIMoveResult = "";
 
 const changeSquareColor = (event) => {
   const square = event.currentTarget;
@@ -214,6 +249,8 @@ const checkForIllegalMove = (square, orientation, ships, playerName) => {
 
 const startTurn = (event) => {
   const square = event.currentTarget;
+  cannonSfx.play();
+
   if (square.classList.contains("AI")) {
     // Prevent player from double-clicking (causes AI to go twice)
     square.removeEventListener("click", startTurn);
@@ -547,6 +584,7 @@ const createPage = () => {
   const AIGameBoardWrapper = createElement("div", "gameBoardWrapper AIWrapper");
   // Temp cover to block player from clicking while AI plays (need 5 sec delay for audios to play)
   const AIBoardCover = createElement("div", "boardCover AIBoardCover");
+  AIBoardCover.style.display = "none";
   const AIGameBoard = createGameBoardGUI("AI");
   AIGameBoardWrapper.appendChild(AIBoardCover);
   AIGameBoardWrapper.appendChild(AIGameBoard);
@@ -576,8 +614,22 @@ const createPage = () => {
   });
 
   const sound = createImage(SoundIcon, "sound");
+  pageBgAudio.addEventListener("ended", () => {
+    const activeSource = document.querySelector(".pageBgAudio source.active");
+
+    // Select next source in queue
+    const nextSource = document.querySelector(".audio source.active + source")
+    || document.querySelector("#audio source:first-child");
+    // Deactivate current source and activate next source
+    activeSource.className = "";
+    nextSource.className = "active";
+
+    // Upadte audio source and start playback
+    pageBgAudio.src = nextSource.src;
+    pageBgAudio.play();
+  });
   sound.addEventListener("click", () => {
-    // loseSfx.play();
+    pageBgAudio.play();
   });
   actionButtonsDiv.appendChild(sound);
   actionButtonsDiv.appendChild(quitGameBtn);
