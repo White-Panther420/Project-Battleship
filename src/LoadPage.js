@@ -5,9 +5,6 @@ import Akainu from "./Assets/Images/Akainu.png";
 import OnePieceLogo from "./Assets/Images/One-Piece-Logo.png";
 import XCollabLogo from "./Assets/Images/XLogo.png";
 import BattleShipLogo from "./Assets/Images/BattleshipLogo.webp";
-import BGMusic1 from "./Assets/Music/Background Music/Overtaken.mp3";
-import BGMusic2 from "./Assets/Music/Background Music/VeryStrongest.mp3";
-import SoundIcon from "./Assets/Images/sound.png";
 
 import ThousandSunny from "./Assets/Images/Thousand_Sunny.png";
 import LawSub from "./Assets/Images/Submarine.png";
@@ -19,6 +16,22 @@ import NavyShip from "./Assets/Images/NavyShip.png";
 
 import Win from "./Assets/Images/Win.jpeg";
 import Lose from "./Assets/Images/Lose.jpg";
+
+import SoundIcon from "./Assets/Images/sound.png";
+
+// Page background music
+import Overtaken from "./Assets/Music/Background Music/Overtaken.mp3";
+import VeryStrongest from "./Assets/Music/Background Music/VeryStrongest.mp3";
+
+// End background music
+import Victory from "./Assets/Music/Background Music/Victory_BG.mp3";
+import Defeat from "./Assets/Music/Background Music/Lose_BG.mp4";
+
+// Sfx
+import LoseSfx from "./Assets/Music/SFX/Ridicule_SFX.mp4";
+import CannonSfx from "./Assets/Music/SFX/Cannon_SFX.mp4";
+import SplashSfx from "./Assets/Music/SFX/Splash_SFX.mp4";
+import ExplosionSfx from "./Assets/Music/SFX/Explosion_SFX.mp4";
 
 import { GameBoard, GameController } from "./index.js";
 
@@ -321,8 +334,35 @@ const makeAIClickSquare = () => {
 };
 
 const restartGame = () => {
+  const gameBoardWrappers = document.querySelectorAll(".gameBoardWrapper");
+  gameBoardWrappers.forEach((boardWrapper) => {
+    boardWrapper.innerHTML = " ";
 
-}
+    // Create new fresh boards
+    if (boardWrapper.classList.contains("player1Wrapper")) {
+      const boardCover = createElement("div", "boardCover");
+      boardWrapper.appendChild(boardCover);
+      boardWrapper.appendChild(createGameBoardGUI("player1"));
+      const playerNumShipsP = document.querySelector(".player1NumShipsP");
+      playerNumShipsP.textContent = "Ships Remaining: 5";
+    } else if (boardWrapper.classList.contains("AIWrapper")) {
+      boardWrapper.appendChild(createGameBoardGUI("AI"));
+      const AINumShipsP = document.querySelector(".AINumShipsP");
+      AINumShipsP.textContent = "Ships Remaining: 5";
+      // eslint-disable-next-line no-use-before-define
+      placeAIShips();
+    } else {
+      const ships = {
+        carrier: [5, Queen],
+        battleship: [4, Boa],
+        cruiser: [3, OroJackson],
+        submarine: [3, LawSub],
+        destroyer: [2, ThousandSunny],
+      };
+      boardWrapper.appendChild(createGameBoardGUI("placement", true, ships));
+    }
+  });
+};
 
 // Displays the board where player will place their ships
 const displayPlacementBoardModal = () => {
@@ -346,6 +386,11 @@ const displayPlacementBoardModal = () => {
   const placeShipMsg = createElement("p", "placeSHipMsg");
   placeShipMsg.textContent = "Place your ";
 
+  const sound = createImage(SoundIcon, "sound");
+  sound.addEventListener("click", () => {
+
+  });
+
   const rotateShipBtn = createElement("button", "rotateShipBtn");
   rotateShipBtn.setAttribute("id", "horizontal");
   rotateShipBtn.textContent = "Rotate Ship";
@@ -364,6 +409,7 @@ const displayPlacementBoardModal = () => {
   modal.appendChild(welcomeHeader);
   modal.appendChild(welcomeMsg);
   modal.appendChild(placeShipMsg);
+  modal.appendChild(sound);
   modal.appendChild(rotateShipBtn);
   modal.appendChild(gameBoardWrapper);
 
@@ -391,22 +437,28 @@ const displayGameOverModal = (loser) => {
 
   const restartMsgP = createElement("p", "restartMsgP");
   restartMsgP.textContent = "Do you wish to restart the game?";
+
+  const actionButtonsDiv = createElement("div", "actionButtonsDiv gameOver flex");
   const restartBtn = createElement("button", "restartBtn");
   restartBtn.textContent = "Restart Game";
   restartBtn.addEventListener("click", () => {
-    
-      
-    });
+    restartGame();
     gameOverModalBg.style.display = "none";
     const modalBg = document.querySelector(".modalBg");
     modalBg.style.display = "block";
   });
+  const sound = createImage(SoundIcon, "sound");
+  sound.addEventListener("click", () => {
+
+  });
+  actionButtonsDiv.appendChild(sound);
+  actionButtonsDiv.appendChild(restartBtn);
 
   gameOverModal.appendChild(winMsgP);
   gameOverModal.appendChild(consequenceMsgP);
   gameOverModal.appendChild(endImg);
   gameOverModal.appendChild(restartMsgP);
-  gameOverModal.appendChild(restartBtn);
+  gameOverModal.appendChild(actionButtonsDiv);
 
   contentDiv.appendChild(gameOverModalBg);
 };
@@ -455,14 +507,6 @@ const createPage = () => {
   titleContainer.appendChild(xCollabLogo);
   titleContainer.appendChild(battleshipLogo);
 
-  // Background music
-  const overtakenAudio = createElement("audio", "audio");
-  overtakenAudio.src = BGMusic1;
-  const veryStrongestAudio = createElement("audio", "audio");
-  veryStrongestAudio.src = BGMusic2;
-  gameContainer.appendChild(overtakenAudio);
-  gameContainer.appendChild(veryStrongestAudio);
-
   const gameBoardContainers = createElement("div", "gameBoardContainers");
 
   const player1GameBoardContainer = createElement("div", "gameBoardContainer");
@@ -501,7 +545,10 @@ const createPage = () => {
   AIInfoContainer.appendChild(AIToken);
   AIInfoContainer.appendChild(AINameP);
   const AIGameBoardWrapper = createElement("div", "gameBoardWrapper AIWrapper");
+  // Temp cover to block player from clicking while AI plays (need 5 sec delay for audios to play)
+  const AIBoardCover = createElement("div", "boardCover AIBoardCover");
   const AIGameBoard = createGameBoardGUI("AI");
+  AIGameBoardWrapper.appendChild(AIBoardCover);
   AIGameBoardWrapper.appendChild(AIGameBoard);
 
   const AIshipInfoContainer = createElement("div", "shipInfoContainer flex");
@@ -522,13 +569,15 @@ const createPage = () => {
   const quitGameBtn = createElement("button", "quitGameBtn");
   quitGameBtn.textContent = "Quit Game";
   quitGameBtn.addEventListener("click", () => {
-
+    GameController.resetGame();
+    restartGame();
+    const modalBg = document.querySelector(".modalBg");
+    modalBg.style.display = "block";
   });
-
 
   const sound = createImage(SoundIcon, "sound");
   sound.addEventListener("click", () => {
-    veryStrongestAudio.play();
+    // loseSfx.play();
   });
   actionButtonsDiv.appendChild(sound);
   actionButtonsDiv.appendChild(quitGameBtn);

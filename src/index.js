@@ -119,21 +119,16 @@ const GameBoard = (() => {
     return "invalid";
   };
 
-  const resetGame = (players) => {
+  const resetBoards = () => {
     for (const board in boards) {
       if (boards.hasOwnProperty(board)) {
         boards[board] = createGameBoard();
-        console.log("NEW");
-        console.log(board);
       }
     }
-    players.forEach((player) => {
-      player.setNumShips();
-    });
   };
 
   return {
-    placeShip, recieveAttack, resetGame,
+    placeShip, recieveAttack, resetBoards,
   };
 })();
 
@@ -204,7 +199,7 @@ const GameController = (() => {
         AISquare.removeEventListener("mouseover", changeSquareColor);
       });
       displayGameOverModal(opponentName);
-      GameBoard.resetGame(players);
+      resetGame();
       return "over"; // Game over
     }
 
@@ -214,7 +209,13 @@ const GameController = (() => {
     return isHit;
   };
 
-  return { playTurn };
+  const resetGame = () => {
+    players.forEach((player) => {
+      player.setNumShips();
+    });
+    GameBoard.resetBoards();
+  };
+  return { playTurn, resetGame };
 })();
 
 createPage();
