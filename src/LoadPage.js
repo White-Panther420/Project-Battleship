@@ -14,6 +14,8 @@ import OroJackson from "./Assets/Images/Oro.png";
 import Boa from "./Assets/Images/Boa.png";
 
 import NavyShip from "./Assets/Images/NavyShip.png";
+import NavyCarrier from "./Assets/Images/NavyCarrier.png";
+import NavyDestroyer from "./Assets/Images/NavyDestroyer.png";
 
 import Win from "./Assets/Images/Win.jpeg";
 import Lose from "./Assets/Images/Lose.jpg";
@@ -22,7 +24,8 @@ import SoundIcon from "./Assets/Images/sound.png";
 
 // Page background music
 import Overtaken from "./Assets/Music/Background Music/Overtaken.mp3";
-import VeryStrongest from "./Assets/Music/Background Music/VeryStrongest.mp3";
+import VeryStrongest from "./Assets/Music/Background Music/VeryStrongest_BG.mp4";
+import WanoTheme from "./Assets/Music/Background Music/Wano.mp3";
 
 // End background music
 import Victory from "./Assets/Music/Background Music/Victory_BG.mp3";
@@ -34,7 +37,7 @@ import CannonSfx from "./Assets/Music/SFX/Cannon_SFX.mp4";
 import SplashSfx from "./Assets/Music/SFX/Splash_SFX.mp4";
 import ExplosionSfx from "./Assets/Music/SFX/Explosion_SFX.mp4";
 
-import { GameBoard, GameController } from "./index.js";
+import { GameBoard, GameController, sleep } from "./index.js";
 
 const createElement = (elementName, elemenetClassName, elementID = "") => {
   const newElement = document.createElement(elementName);
@@ -63,27 +66,33 @@ contentDiv.style.backgroundPosition = "center";
 const pageBgAudio = createElement("audio", "pageBgAudio");
 const veryStrongest = createElement("source", "bg");
 veryStrongest.src = VeryStrongest;
+veryStrongest.volume = 0.8;
 const overtaken = createElement("source", "bg");
 overtaken.src = Overtaken;
-pageBgAudio.appendChild(veryStrongest);
+overtaken.volume = 0.8;
+const wanoTheme = createElement("source", "bg");
+wanoTheme.src = WanoTheme;
+wanoTheme.volume = 0.8;
+
 pageBgAudio.appendChild(overtaken);
+pageBgAudio.appendChild(veryStrongest);
 
 const cannonSfx = createElement("audio", "cannonSfx");
 cannonSfx.src = CannonSfx;
+cannonSfx.volume = 1;
 const explosionSfx = createElement("audio", "explosionSfx");
 explosionSfx.src = ExplosionSfx;
+explosionSfx.volume = 1;
 const splashSfx = createElement("audio", "splashSfx");
 splashSfx.src = SplashSfx;
+splashSfx.volume = 1;
 
-const loseAudio = createElement("audio", "loseMissAudio");
-const loseSfx = createElement("source", "sfx");
+const loseSfx = createElement("audio", "sfx");
 loseSfx.src = LoseSfx;
-const loseBg = createElement("source", "bg");
-loseBg.src = loseBg;
-loseAudio.appendChild(loseSfx);
-loseAudio.appendChild(loseBg);
+const loseBg = createElement("audio", "bg");
+loseBg.src = Defeat;
 
-const winAudio = createElement("audio", "audioContainer");
+const winAudio = createElement("audio", "winAudio");
 const victory = createElement("source", "bg");
 victory.src = Victory;
 winAudio.appendChild(victory);
@@ -91,8 +100,10 @@ winAudio.appendChild(victory);
 contentDiv.appendChild(cannonSfx);
 contentDiv.appendChild(explosionSfx);
 contentDiv.appendChild(splashSfx);
-contentDiv.appendChild(loseAudio);
+contentDiv.appendChild(loseSfx);
+contentDiv.appendChild(loseBg);
 contentDiv.appendChild(winAudio);
+contentDiv.appendChild(pageBgAudio);
 
 // Variables to help AI become smarter
 let prevAIMove = "";
@@ -100,7 +111,11 @@ let prevAIMoveResult = "";
 
 const changeSquareColor = (event) => {
   const square = event.currentTarget;
-  square.style.background = "green";
+  if (square.classList.contains("clicked")) {
+    square.style.background = "#b40808";
+  } else {
+    square.style.background = "#0db849";
+  }
 };
 
 const eraseSquares = () => {
@@ -202,6 +217,7 @@ const placeShipOnBoard = (playerName, ships, square, orientation) => {
     if (playerName === "player1") {
       const modalBg = document.querySelector(".modalBg");
       modalBg.style.display = "none";
+      pageBgAudio.play();
     }
   }
 };
@@ -383,6 +399,9 @@ const restartGame = () => {
       const playerNumShipsP = document.querySelector(".player1NumShipsP");
       playerNumShipsP.textContent = "Ships Remaining: 5";
     } else if (boardWrapper.classList.contains("AIWrapper")) {
+      const AIboardCover = createElement("div", "boardCover AIBoardCover");
+      boardWrapper.appendChild(AIboardCover);
+      AIboardCover.style.display = "none";
       boardWrapper.appendChild(createGameBoardGUI("AI"));
       const AINumShipsP = document.querySelector(".AINumShipsP");
       AINumShipsP.textContent = "Ships Remaining: 5";
@@ -423,11 +442,6 @@ const displayPlacementBoardModal = () => {
   const placeShipMsg = createElement("p", "placeSHipMsg");
   placeShipMsg.textContent = "Place your ";
 
-  const sound = createImage(SoundIcon, "sound");
-  sound.addEventListener("click", () => {
-
-  });
-
   const rotateShipBtn = createElement("button", "rotateShipBtn");
   rotateShipBtn.setAttribute("id", "horizontal");
   rotateShipBtn.textContent = "Rotate Ship";
@@ -446,7 +460,6 @@ const displayPlacementBoardModal = () => {
   modal.appendChild(welcomeHeader);
   modal.appendChild(welcomeMsg);
   modal.appendChild(placeShipMsg);
-  modal.appendChild(sound);
   modal.appendChild(rotateShipBtn);
   modal.appendChild(gameBoardWrapper);
 
@@ -462,11 +475,21 @@ const displayGameOverModal = (loser) => {
   const consequenceMsgP = createElement("p", "consequenceMsgP");
   let endImg;
 
+  pageBgAudio.pause();
+  let audioToPlay;
   if (loser === "player1") {
+    loseSfx.play();
+    audioToPlay = loseBg;
+    audioToPlay.play();
+    audioToPlay.volume = 1;
     winMsgP.textContent = "YOU LOSE!!!";
     endImg = createImage(Lose, "loseEndImg");
     consequenceMsgP.textContent = "The Navy has captured your crew and Monkey D. Luffy has been sentenced to LIFE in Impeldown!";
+    sleep(2000);
+    loseBg.play();
   } else {
+    audioToPlay = winAudio;
+    audioToPlay.play();
     winMsgP.textContent = "YOI WIN!!!";
     endImg = createImage(Win, "winEndImg");
     consequenceMsgP.textContent = "You have saved your crew and yourself from the clutches of Akainu! You live to sail another day!!";
@@ -479,14 +502,16 @@ const displayGameOverModal = (loser) => {
   const restartBtn = createElement("button", "restartBtn");
   restartBtn.textContent = "Restart Game";
   restartBtn.addEventListener("click", () => {
+    audioToPlay.pause();
+    pageBgAudio.currentTime = 0;
     restartGame();
-    gameOverModalBg.style.display = "none";
+    contentDiv.removeChild(gameOverModalBg);
     const modalBg = document.querySelector(".modalBg");
     modalBg.style.display = "block";
   });
   const sound = createImage(SoundIcon, "sound");
   sound.addEventListener("click", () => {
-
+    audioToPlay.muted = !audioToPlay.muted;
   });
   actionButtonsDiv.appendChild(sound);
   actionButtonsDiv.appendChild(restartBtn);
@@ -502,11 +527,11 @@ const displayGameOverModal = (loser) => {
 
 const placeAIShips = () => {
   const AIShips = {
-    carrier: [5, Queen],
-    battleship: [4, Boa],
-    cruiser: [3, OroJackson],
-    submarine: [3, LawSub],
-    destroyer: [2, ThousandSunny],
+    carrier: [5, NavyCarrier],
+    battleship: [4, NavyDestroyer],
+    cruiser: [3, NavyDestroyer],
+    submarine: [3, NavyShip],
+    destroyer: [2, NavyShip],
   };
 
   while (Object.keys(AIShips).length > 0) {
@@ -604,9 +629,12 @@ const createPage = () => {
   gameBoardContainers.appendChild(AIGameBoardContainer);
 
   const actionButtonsDiv = createElement("div", "actionButtonsDiv flex");
-  const quitGameBtn = createElement("button", "quitGameBtn");
+  const quitGameBtn = createElement("button", "quitGameBtn activeBtn");
   quitGameBtn.textContent = "Quit Game";
+
   quitGameBtn.addEventListener("click", () => {
+    pageBgAudio.pause();
+    pageBgAudio.currentTime = 0;
     GameController.resetGame();
     restartGame();
     const modalBg = document.querySelector(".modalBg");
@@ -614,22 +642,35 @@ const createPage = () => {
   });
 
   const sound = createImage(SoundIcon, "sound");
-  pageBgAudio.addEventListener("ended", () => {
-    const activeSource = document.querySelector(".pageBgAudio source.active");
 
-    // Select next source in queue
-    const nextSource = document.querySelector(".audio source.active + source")
-    || document.querySelector("#audio source:first-child");
-    // Deactivate current source and activate next source
-    activeSource.className = "";
-    nextSource.className = "active";
+  pageBgAudio.addEventListener("timeupdate", () => {
+    console.log("WE IN HERE");
+    // Check if the audio is close to the end (e.g., within 1 second)
+    if (pageBgAudio.currentTime >= pageBgAudio.duration - 0.01) {
+      const activeSource = document.querySelector(".pageBgAudio source.active");
+      const nextSource = document.querySelector(".pageBgAudio source.active + source")
+            || document.querySelector(".pageBgAudio source:first-child");
 
-    // Upadte audio source and start playback
-    pageBgAudio.src = nextSource.src;
-    pageBgAudio.play();
+      console.log(nextSource);
+      // Deactivate current source and activate next source
+      activeSource.className = "";
+      nextSource.className = "active";
+
+      // Update audio source and start playback
+      pageBgAudio.src = nextSource.src;
+      pageBgAudio.play();
+    }
   });
+
+  // Set the initial source to the first one
+  const firstSource = document.querySelector(".pageBgAudio source:first-child");
+  firstSource.className = "active";
+  pageBgAudio.src = firstSource.src;
+  pageBgAudio.muted = true;
+
   sound.addEventListener("click", () => {
-    pageBgAudio.play();
+    // Toggle mute
+    pageBgAudio.muted = !pageBgAudio.muted;
   });
   actionButtonsDiv.appendChild(sound);
   actionButtonsDiv.appendChild(quitGameBtn);

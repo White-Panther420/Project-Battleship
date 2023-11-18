@@ -59,7 +59,7 @@ body{
     z-index: 200;
 
     max-width: 350px;
-    height: 718px;
+    height: 700px;
 
     background-image: url("../Assets/Images/WantedBg.jpg");
 
@@ -74,12 +74,8 @@ body{
     font-weight: 700;
 }
 
-.modal > .sound {
-    display: block;
-
-    margin-top: 25px;
-    margin-left: auto;
-    margin-right: auto;
+.welcomeHeader{
+    font-size: 42px;
 }
 
 .rotateShipBtn{
@@ -291,7 +287,7 @@ h1{
 }
 
 .AIBoardCover{
-    background-color: white;
+    position: absolute;
 }
 
 .rowDiv{
@@ -302,7 +298,6 @@ h1{
 .square{
     width: 35px;
     height: inherit;
-
     border: 2px solid rgb(255, 255, 255);
     z-index: 50;
 }
@@ -372,6 +367,14 @@ h1{
     background-image: url("../Assets/Images/GumGum.jpg");
     
     color: white
+}
+
+.activeBtn:hover{
+    border: 12x sold white;
+}
+
+.inavtiveBtn:hover{
+    border: 12x sold grey;
 }
 
 .explosion,

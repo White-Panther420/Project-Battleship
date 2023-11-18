@@ -9,6 +9,11 @@ import {
 import Explosion from "./Assets/Images/Explosion.png";
 import MissX from "./Assets/Images/missX.webp";
 
+// Sleep function to delay code execution
+// eslint-disable-next-line no-promise-executor-return
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
+const quitGameBtn = document.querySelector(".quitGameBtn");
+
 const Battleship = (shipType) => {
   let numTimesHit = 0;
   let sunk = false;
@@ -179,7 +184,7 @@ const GUIController = (() => {
 const GameController = (() => {
   const players = [player("player1"), player("AI")];
 
-  const playTurn = (square, playerName, opponentBoardName) => {
+  const playTurn = async (square, playerName, opponentBoardName) => {
     const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
     // Turn those strings into ints
     const squareCoordinate = squareCoordinateStr.map((match) => parseInt(match, 10));
@@ -198,8 +203,9 @@ const GameController = (() => {
       numShipsP.textContent = `Ships Remaining: ${opponent.getNumShips()}`;
     }
     AIBoardCover.style.display = "block";
-    setTimeout(GUIController.markSquare, 2000, square, isHit, opponentBoardName);
-    AIBoardCover.style.display = "none";
+    // quitGameBtn.classList.add("inactiveBtn");
+    await sleep(2000);
+    GUIController.markSquare(square, isHit, opponentBoardName);
 
     if (opponent.getNumShips() === 0) {
       const allAISquares = document.querySelectorAll(".square.AI");
@@ -215,8 +221,10 @@ const GameController = (() => {
     if (opponentName === "AI") {
       // Delay move to let sfxs of player attack finish playing
       // Prevent player from clicking board while AI waits
-      AIBoardCover.style.display = "block";
-      setTimeout(makeAIClickSquare, 2000);
+      await sleep(2000);
+      makeAIClickSquare();
+      await sleep(3000);
+      // quitGameBtn.classList.remove("inactiveBtn");
       AIBoardCover.style.display = "none";
     }
     return isHit;
@@ -233,4 +241,4 @@ const GameController = (() => {
 
 createPage();
 
-export { GameBoard, GameController };
+export { GameBoard, GameController, sleep };
