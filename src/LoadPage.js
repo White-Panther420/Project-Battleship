@@ -128,6 +128,7 @@ const eraseSquares = () => {
   });
 };
 
+// Places the image of a ship on game board
 const placeShipImg = (square, shipImage, shipLength, shipName, orientation) => {
   const squareWidth = square.offsetWidth;
 
@@ -264,7 +265,7 @@ const checkForIllegalMove = (square, orientation, ships, playerName) => {
   }
   return legalMove;
 };
-
+// Starts the game loop when a square is clicked
 const startTurn = (event) => {
   const square = event.currentTarget;
   cannonSfx.play();
@@ -328,6 +329,7 @@ const createGameBoardGUI = (playerName, placementBoard = false, ships = "") => {
   return gameBoard;
 };
 
+// generates a random coordinate and then selects a random square form the coordinates
 const makeAIMOve = () => {
   const x = Math.floor(Math.random() * 10); // Random number between 0 and 9
   const y = Math.floor(Math.random() * 10);
@@ -335,7 +337,7 @@ const makeAIMOve = () => {
   const dataState = `(${x}, ${y})`;
   return dataState;
 };
-
+// Makes a smarter move if the AI hits a ship
 const makeSmartAIMove = () => {
   // Get (x, y) coordinate of prevMove as strings in an array
   const prevMoveCoordinatesStr = prevAIMove.match(/\d+/g);
@@ -355,16 +357,14 @@ const makeSmartAIMove = () => {
   do {
     // Generate a number 0-3 inlusive
     const randomDirection = Math.floor(Math.random() * 4);
-    console.log(randomDirection);
     moveDirection = Object.values(moveDirections)[randomDirection];
-    console.log(moveDirection);
     // eslint-disable-next-line max-len
   } while (moveDirection[0] < 0 || moveDirection[1] < 0 || moveDirection[0] > 9 || moveDirection[1] > 9);
 
   const dataState = `(${moveDirection[0]}, ${moveDirection[1]})`;
   return dataState;
 };
-
+// Initializes AI's turn
 const makeAIClickSquare = () => {
   const playerBoard = document.querySelector(".player1Board");
   let dataState;
@@ -421,7 +421,6 @@ const restartGame = () => {
     }
   });
 };
-
 const quitGame = () => {
   pageBgAudio.pause();
   pageBgAudio.currentTime = 0;
@@ -648,14 +647,12 @@ const createPage = () => {
   const sound = createImage(SoundIcon, "sound");
 
   pageBgAudio.addEventListener("timeupdate", () => {
-    console.log("WE IN HERE");
     // Check if the audio is close to the end (e.g., within 1 second)
     if (pageBgAudio.currentTime >= pageBgAudio.duration - 0.01) {
       const activeSource = document.querySelector(".pageBgAudio source.active");
       const nextSource = document.querySelector(".pageBgAudio source.active + source")
             || document.querySelector(".pageBgAudio source:first-child");
 
-      console.log(nextSource);
       // Deactivate current source and activate next source
       activeSource.className = "";
       nextSource.className = "active";
