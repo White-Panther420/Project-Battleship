@@ -369,14 +369,6 @@ h1{
     color: white
 }
 
-.activeBtn:hover{
-    border: 12x sold white;
-}
-
-.inavtiveBtn:hover{
-    border: 12x sold grey;
-}
-
 .explosion,
 .miss{
     width: 25px;

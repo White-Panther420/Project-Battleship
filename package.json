@@ -9,7 +9,9 @@
     "dev": "webpack server",
     "start": "webpack serve --open",
     "test": "jest",
-    "watch": "jest --watch ./Tests/*.js"
+    "watch": "jest --watch ./Tests/*.js",
+    "deploy": "gh-pages -d dist",
+    "gitHubScript": "git subtree push --prefix dist origin gh-pages," 
   },
   "keywords": [],
   "author": "",

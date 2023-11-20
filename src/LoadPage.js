@@ -73,9 +73,11 @@ overtaken.volume = 0.8;
 const wanoTheme = createElement("source", "bg");
 wanoTheme.src = WanoTheme;
 wanoTheme.volume = 0.8;
+wanoTheme.playbackRate = 0.8;
 
 pageBgAudio.appendChild(overtaken);
 pageBgAudio.appendChild(veryStrongest);
+pageBgAudio.appendChild(wanoTheme);
 
 const cannonSfx = createElement("audio", "cannonSfx");
 cannonSfx.src = CannonSfx;
@@ -420,6 +422,15 @@ const restartGame = () => {
   });
 };
 
+const quitGame = () => {
+  pageBgAudio.pause();
+  pageBgAudio.currentTime = 0;
+  GameController.resetGame();
+  restartGame();
+  const modalBg = document.querySelector(".modalBg");
+  modalBg.style.display = "block";
+};
+
 // Displays the board where player will place their ships
 const displayPlacementBoardModal = () => {
   const ships = {
@@ -629,17 +640,10 @@ const createPage = () => {
   gameBoardContainers.appendChild(AIGameBoardContainer);
 
   const actionButtonsDiv = createElement("div", "actionButtonsDiv flex");
-  const quitGameBtn = createElement("button", "quitGameBtn activeBtn");
+  const quitGameBtn = createElement("button", "quitGameBtn");
   quitGameBtn.textContent = "Quit Game";
 
-  quitGameBtn.addEventListener("click", () => {
-    pageBgAudio.pause();
-    pageBgAudio.currentTime = 0;
-    GameController.resetGame();
-    restartGame();
-    const modalBg = document.querySelector(".modalBg");
-    modalBg.style.display = "block";
-  });
+  quitGameBtn.addEventListener("click", quitGame);
 
   const sound = createImage(SoundIcon, "sound");
 
@@ -696,4 +700,5 @@ export {
   makeAIClickSquare,
   changeSquareColor,
   displayGameOverModal,
+  quitGame,
 };

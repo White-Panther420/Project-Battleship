@@ -3,7 +3,7 @@
 /* eslint-disable import/no-import-module-exports */
 import "./Styles/styles.css";
 import {
-  createPage, createImage, startTurn, makeAIClickSquare, changeSquareColor, displayGameOverModal,
+  createPage, createImage, startTurn, makeAIClickSquare, changeSquareColor, displayGameOverModal, quitGame,
 } from "./LoadPage";
 
 import Explosion from "./Assets/Images/Explosion.png";
@@ -12,7 +12,6 @@ import MissX from "./Assets/Images/missX.webp";
 // Sleep function to delay code execution
 // eslint-disable-next-line no-promise-executor-return
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
-const quitGameBtn = document.querySelector(".quitGameBtn");
 
 const Battleship = (shipType) => {
   let numTimesHit = 0;
@@ -181,8 +180,11 @@ const GUIController = (() => {
   return { markSquare };
 })();
 
+createPage();
+
 const GameController = (() => {
   const players = [player("player1"), player("AI")];
+  const quitGameBtn = document.querySelector(".quitGameBtn");
 
   const playTurn = async (square, playerName, opponentBoardName) => {
     const squareCoordinateStr = square.getAttribute("data-state").match(/\d+/g);
@@ -203,7 +205,8 @@ const GameController = (() => {
       numShipsP.textContent = `Ships Remaining: ${opponent.getNumShips()}`;
     }
     AIBoardCover.style.display = "block";
-    // quitGameBtn.classList.add("inactiveBtn");
+    quitGameBtn.style.border = "2px solid grey";
+    quitGameBtn.removeEventListener("click", quitGame);
     await sleep(2000);
     GUIController.markSquare(square, isHit, opponentBoardName);
 
@@ -224,7 +227,8 @@ const GameController = (() => {
       await sleep(2000);
       makeAIClickSquare();
       await sleep(3000);
-      // quitGameBtn.classList.remove("inactiveBtn");
+      quitGameBtn.addEventListener("click", quitGame);
+      quitGameBtn.style.border = "2px solid white";
       AIBoardCover.style.display = "none";
     }
     return isHit;
@@ -238,7 +242,5 @@ const GameController = (() => {
   };
   return { playTurn, resetGame };
 })();
-
-createPage();
 
 export { GameBoard, GameController, sleep };
